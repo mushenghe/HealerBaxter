@@ -1,5 +1,27 @@
-|  ffff | ffff  |  fff | ffff  |ffff   |
+### Tasks
+
++  Emotion Detection
+    - Face Recognition
+    - Emotion Detection
++  Piano Playing
+    - Locate the piano and compute the poses of keys
+        - explore AR tag, locate the piano
+        - compute the offset of each key to the colsest AR tag
+        - covert the poses in the AR frame to the poses in the world frame
+    - Path planning for both arms
+        - learn how to move the gripper apart or closer together    
+        - Set waypoint between each movement of notes to create up-down pression motion
+        - set all poses continuously
+
+|  | Week Plan  |  Accomplished | Problems&Answers   | Meeting Summary   |
 |---|---|---|---|---|
-| ffff  |  ff | ff  | f  | f  |
-|  f |  f |  f | f  | f  |
-|  f | f  |  f |  f |f   |
+| week1  1.08  - 1.14  |locate the piano, compute offset of all keys and transform the coordinates |   | f  | f  |
+| week2  1.15 - 1.21  |   |   | f  | f  |
+| week3  1.22 - 1.28  |   |   |  f |f   |
+| week4  1.29 - 2.04  |   |   |  f |f   |
+| week5  2.05 - 2.11  |   |   |  f |f   |
+| week6  2.12 - 2.18  |   |   |  f |f   |
+| week7  2.19 - 2.25  |   |   |  f |f   |
+| week8  2.26 - 3.03  |  |  |  f |f   |
+| week9  3.04 - 3.10  |   |   |  f |f   |
+| week10 3.11 - 3.17  |   |   |   |f   |
