@@ -15,7 +15,7 @@
 
 |  | Week Plan  |  Accomplished | Problems&Answers   | Meeting Summary   |
 |---|---|---|---|---|
-| week1  1.08  - 1.14  |locate the piano, compute offset of all keys and transform the coordinates |   | f  | f  |
+| week1  1.08  - 1.14  |learn emotion detection by deep Learning + what Deep Learning is + what Reinforcement Learning is + learn Tensorflow https://www.coursera.org/specializations/tensorflow-in-practice + learn Keras |   | f  | f  |
 | week2  1.15 - 1.21  |   |   | f  | f  |
 | week3  1.22 - 1.28  |   |   |  f |f   |
 | week4  1.29 - 2.04  |   |   |  f |f   |
