@@ -15,8 +15,8 @@
 
 |  | Week Plan  |  Accomplished | Problems&Answers   | Meeting Summary   |
 |---|---|---|---|---|
-| week1  1.08  - 1.14  |learn emotion detection by deep Learning + what Deep Learning is + what Reinforcement Learning is + learn Tensorflow https://www.coursera.org/specializations/tensorflow-in-practice + learn Keras |   | f  | f  |
-| week2  1.15 - 1.21  |   |   | f  | f  |
+| week1  1.08  - 1.14  |learn emotion detection by deep Learning + what Deep Learning is + what Reinforcement Learning is + learn Tensorflow https://www.coursera.org/specializations/tensorflow-in-practice + learn Keras ||| dont't do both at the same time. training---> piano--->face recognization. Finish deep learning part ASAP. Do tenserflow/pytorch?|
+| week2  1.15 - 1.21  |   |   | Trouble using GPU: 1. how to copy files from local to remote(Could not resolve hostname beast: Name or service not known lost connection---ssh.service?) 2.import keras(unable to open X server `' @ error/import.c/ImportImageCommand/358)3. acceess denied (sudo)  | read paper, find(easy to understand&good model)  |
 | week3  1.22 - 1.28  |   |   |  f |f   |
 | week4  1.29 - 2.04  |   |   |  f |f   |
 | week5  2.05 - 2.11  |   |   |  f |f   |
@@ -25,3 +25,10 @@
 | week8  2.26 - 3.03  |  |  |  f |f   |
 | week9  3.04 - 3.10  |   |   |  f |f   |
 | week10 3.11 - 3.17  |   |   |   |f   |
+
+/robot/urdf mutable robot state publisher
+load up in rviz, make sure matched your robot
+2 urdf(on the robot description---internal)(robot state publisher/moveit)
+
+
+add gripper to robot state publisher----even though it has in the

@@ -62,6 +62,18 @@ https://www.paralleldots.com/facial-emotion
     - Cohn-Kanade AU-Coded Expression Database
 http://www.pitt.edu/~emotion/ck-spread.htm
 
+Use tensorflow on my computer:
+``` source ./deep_learning/bin/activate ```
+to deactivate :
+deactivate 
+
+Use on gpu:  ssh -p 922 129.105.69.167
+exit: exit
+
+want to copy files from my computer to GPU:
+scp -P 922 test mushenghe@129.105.69.167:~/ 
 
 
+ctrl-v   go to what ever you want  x
+ctrl-v shift i
 
