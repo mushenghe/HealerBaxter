@@ -8,7 +8,7 @@ import os
 
 num_classes = 5 # Angry, Happy, Neutral, Sad, Surprise
 img_rows,img_cols = 48,48
-batch_size = 64 # use 32 images one time for training,can change
+batch_size = 64 # use 64 images one time for training,can change
 
 train_data_dir = '/home/mushenghe/emotion_detection/database/fer2013/train/'
 validation_data_dir = '/home/mushenghe/emotion_detection/database/fer2013/validation/'
@@ -49,9 +49,9 @@ model = Sequential()
 model.add(Conv2D(64,(3,3),padding='same',kernel_initializer='he_normal',input_shape=(img_rows,img_cols,1))) #48*48 grayscale image
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-model.add(Conv2D(64,(3,3),padding='same',kernel_initializer='he_normal',input_shape=(img_rows,img_cols,1)))
-model.add(Activation('relu'))
-model.add(BatchNormalization())
+# model.add(Conv2D(64,(3,3),padding='same',kernel_initializer='he_normal',input_shape=(img_rows,img_cols,1)))
+# model.add(Activation('relu'))
+# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25)) # at a time only 75% neurons will activated, prevent the model from overfitting
 
@@ -60,9 +60,9 @@ model.add(Dropout(0.25)) # at a time only 75% neurons will activated, prevent th
 model.add(Conv2D(128,(5,5),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-model.add(Conv2D(128,(5,5),padding='same',kernel_initializer='he_normal'))
-model.add(Activation('relu'))
-model.add(BatchNormalization())
+# model.add(Conv2D(128,(5,5),padding='same',kernel_initializer='he_normal'))
+# model.add(Activation('relu'))
+# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -71,9 +71,9 @@ model.add(Dropout(0.25))
 model.add(Conv2D(128,(3,3),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-model.add(Conv2D(128,(3,3),padding='same',kernel_initializer='he_normal'))
-model.add(Activation('relu'))
-model.add(BatchNormalization())
+# model.add(Conv2D(128,(3,3),padding='same',kernel_initializer='he_normal'))
+# model.add(Activation('relu'))
+# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -82,9 +82,9 @@ model.add(Dropout(0.25))
 model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('elu'))
 model.add(BatchNormalization())
-model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
-model.add(Activation('elu'))
-model.add(BatchNormalization())
+# model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
+# model.add(Activation('elu'))
+# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -93,9 +93,9 @@ model.add(Dropout(0.25))
 model.add(Conv2D(512,(3,3),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-model.add(Conv2D(512,(3,3),padding='same',kernel_initializer='he_normal'))
-model.add(Activation('relu'))
-model.add(BatchNormalization())
+# model.add(Conv2D(512,(3,3),padding='same',kernel_initializer='he_normal'))
+# model.add(Activation('relu'))
+# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -124,42 +124,42 @@ model.add(Activation('softmax'))
 
 print(model.summary())
 
-from keras.optimizers import RMSprop,SGD,Adam
-from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+# from keras.optimizers import RMSprop,SGD,Adam
+# from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
-checkpoint = ModelCheckpoint('little_vgg.h5',
-                              monitor='val_loss', #monitor the validation lost
-                              mode='min',
-                              save_best_only=True, # only save the best result
-                             verbose=1)
+# checkpoint = ModelCheckpoint('little_vgg.h5',
+#                               monitor='val_loss', #monitor the validation lost
+#                               mode='min',
+#                               save_best_only=True, # only save the best result
+#                              verbose=1)
 
-earlystop = EarlyStopping(monitor='val_loss',
-                           min_delta=0,
-                           patience=20,
-                           verbose=1,
-                           restore_best_weights=True
-                           )
+# earlystop = EarlyStopping(monitor='val_loss',
+#                            min_delta=0,
+#                            patience=20,
+#                            verbose=1,
+#                            restore_best_weights=True
+#                            )
 
-reduce_lr = ReduceLROnPlateau(monitor='val_loss',
-                               factor=0.2,
-                               patience=3,
-                               verbose=1,
-                               min_delta=0.0001)
+# reduce_lr = ReduceLROnPlateau(monitor='val_loss',
+#                                factor=0.2,
+#                                patience=3,
+#                                verbose=1,
+#                                min_delta=0.0001)
 
-callbacks = [earlystop,checkpoint,reduce_lr]
+# callbacks = [earlystop,checkpoint,reduce_lr]
 
-model.compile(loss='categorical_crossentropy',
-               optimizer = Adam(lr=0.001),
-               metrics=['accuracy'])
+# model.compile(loss='categorical_crossentropy',
+#                optimizer = Adam(lr=0.001),
+#                metrics=['accuracy'])
 
-nb_train_samples = 7753413
-nb_validation_samples = 7424
-epochs=120
+# nb_train_samples = 7753413
+# nb_validation_samples = 7424
+# epochs=120
 
-history=model.fit_generator(
-                train_generator,
-                steps_per_epoch=nb_train_samples//batch_size,
-                epochs=epochs,
-                callbacks=callbacks,
-                validation_data=validation_generator,
-                validation_steps=nb_validation_samples//batch_size)
+# history=model.fit_generator(
+#                 train_generator,
+#                 steps_per_epoch=nb_train_samples//batch_size,
+#                 epochs=epochs,
+#                 callbacks=callbacks,
+#                 validation_data=validation_generator,
+#                 validation_steps=nb_validation_samples//batch_size)
