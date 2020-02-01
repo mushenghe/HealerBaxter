@@ -152,8 +152,8 @@ model.compile(loss='categorical_crossentropy',
                optimizer = Adam(lr=0.001),
                metrics=['accuracy'])
 
-nb_train_samples = 7,753,413
-nb_validation_samples = 7,424
+nb_train_samples = 7753413
+nb_validation_samples = 7424
 epochs=120
 
 history=model.fit_generator(
