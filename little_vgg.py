@@ -124,42 +124,42 @@ model.add(Activation('softmax'))
 
 print(model.summary())
 
-# from keras.optimizers import RMSprop,SGD,Adam
-# from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from keras.optimizers import RMSprop,SGD,Adam
+from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
-# checkpoint = ModelCheckpoint('little_vgg.h5',
-#                               monitor='val_loss', #monitor the validation lost
-#                               mode='min',
-#                               save_best_only=True, # only save the best result
-#                              verbose=1)
+checkpoint = ModelCheckpoint('new_model.h5',
+                              monitor='val_loss', #monitor the validation lost
+                              mode='min',
+                              save_best_only=True, # only save the best result
+                             verbose=1)
 
-# earlystop = EarlyStopping(monitor='val_loss',
-#                            min_delta=0,
-#                            patience=20,
-#                            verbose=1,
-#                            restore_best_weights=True
-#                            )
+earlystop = EarlyStopping(monitor='val_loss',
+                           min_delta=0,
+                           patience=20,
+                           verbose=1,
+                           restore_best_weights=True
+                           )
 
-# reduce_lr = ReduceLROnPlateau(monitor='val_loss',
-#                                factor=0.2,
-#                                patience=3,
-#                                verbose=1,
-#                                min_delta=0.0001)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss',
+                               factor=0.2,
+                               patience=3,
+                               verbose=1,
+                               min_delta=0.0001)
 
-# callbacks = [earlystop,checkpoint,reduce_lr]
+callbacks = [earlystop,checkpoint,reduce_lr]
 
-# model.compile(loss='categorical_crossentropy',
-#                optimizer = Adam(lr=0.001),
-#                metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy',
+               optimizer = Adam(lr=0.001),
+               metrics=['accuracy'])
 
-# nb_train_samples = 7753413
-# nb_validation_samples = 7424
-# epochs=120
+nb_train_samples = 3156357
+nb_validation_samples = 5248
+epochs=120
 
-# history=model.fit_generator(
-#                 train_generator,
-#                 steps_per_epoch=nb_train_samples//batch_size,
-#                 epochs=epochs,
-#                 callbacks=callbacks,
-#                 validation_data=validation_generator,
-#                 validation_steps=nb_validation_samples//batch_size)
+history=model.fit_generator(
+                train_generator,
+                steps_per_epoch=nb_train_samples//batch_size,
+                epochs=epochs,
+                callbacks=callbacks,
+                validation_data=validation_generator,
+                validation_steps=nb_validation_samples//batch_size)
