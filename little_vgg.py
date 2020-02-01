@@ -154,7 +154,7 @@ model.compile(loss='categorical_crossentropy',
 
 nb_train_samples = 3156357
 nb_validation_samples = 5248
-epochs=120
+epochs=4
 
 history=model.fit_generator(
                 train_generator,
