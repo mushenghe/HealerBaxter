@@ -9,8 +9,8 @@ PUBLSIHERS:
 + display_trajectory_publisher (/move_group/display_planned_path) - displays trajectory in RViz
 
 SUBSCRIBERS:
-+ gun_pose_sub (/tag_pose) - subscribes to tag_pose, calls self.aim
-+ gun_pose_sub (/start_aiming) - subscribes to start_aiming, calls self.initiate_aiming
++ tag_pose_sub (/tag_pose) - subscribes to tag_pose, calls self.aim
++ tag_pose_sub (/start_aiming) - subscribes to start_aiming, calls self.initiate_aiming
 
 ACTION SERVICES:
 + _asgun (guncommander) - Initiates action service for commander node
@@ -47,7 +47,7 @@ from std_msgs.msg import Bool
 
 import terminator.msg
 
-from gripper import *
+# from gripper import *
 
 
 class PianoPlay(object):
@@ -89,12 +89,35 @@ class PianoPlay(object):
         # Calibrate Gripper
         self.left_gripper.calibrate()
         # Open Gripper
-        self.left_gripper.open()
 
-        self.orientation_x = -0.003
-        self.orientation_y = 0.696
-        self.orientation_z = -0.0048
-        self.orientation_w = 0.717
+        print("got to the initial pose")
+        self.orientation_x = 0.997938
+        self.orientation_y = 0.0628973
+        self.orientation_z = 0.00953334
+        self.orientation_w = -0.00857231
+
+        self.position.x = 0.870284
+        self.position.y = 0.345092
+        self.position.z = 0.210538
+        # ''' test '''
+        # test_pose = geometry_msgs.msg.Pose()
+        # curr_left_pose = self.left_group.get_current_pose().pose
+        # test_pose.orientation_x = 0.997938
+        # test_pose.orientation_y = 0.0628973
+        # test_pose.orientation_z = 0.00953334
+        # test_pose.orientation_w = -0.00857231
+
+        # test_pose.position.x = 0.870284
+        # test_pose.position.y = 0.345092
+        # test_pose.position.z = 0.210538
+
+        # plan_left_first, fraction_left, plan_success = plan_cartesian_path(curr_left_pose, test_pose, self.left_group)
+        # display_trajectory(plan_left_first, self.robot, self.display_trajectory_publisher)
+
+        # self.left_group.execute(plan_left_first, wait=True)
+        # self.left_group.stop()
+		# self.left_group.clear_pose_targets()
+
 
         # size of April tag
         # important for placement of gripper
@@ -115,131 +138,203 @@ class PianoPlay(object):
         self.dy = 0.01
         self.dz = 0.005
 
+
+        rospy.loginfo("Before display trajectory")
         # trajectory in RVIZ
         self.display_trajectory_publisher = rospy.Publisher(
             '/move_group/display_planned_path',
             moveit_msgs.msg.DisplayTrajectory,
             queue_size=20)
 
-        # init pose goal for right EE
-        self.init_goal = geometry_msgs.msg.Pose()
-        self.init_goal.orientation.x = 0.065
-        self.init_goal.orientation.y = 0.766
-        self.init_goal.orientation.z = -0.022
-        self.init_goal.orientation.w = 0.639
+        # # init pose goal for right EE
+        # self.init_goal = geometry_msgs.msg.Pose()
+        # self.init_goal.orientation.x = 0.065
+        # self.init_goal.orientation.y = 0.766
+        # self.init_goal.orientation.z = -0.022
+        # self.init_goal.orientation.w = 0.639
 
-        self.init_goal.position.x = 0.415
-        self.init_goal.position.y = 0.6#0.531
-        self.init_goal.position.z = -0.15
+        # self.init_goal.position.x = 0.415
+        # self.init_goal.position.y = 0.6#0.531
+        # self.init_goal.position.z = -0.15
 
         # pose of the tag
         self.tag_pose = None
 
-        self.gun_pose_sub = rospy.Subscriber('/tag_pose', Pose, self.tag_position)
+        self.tag_pose_sub = rospy.Subscriber('/tag_pose', Pose, self.tag_position)
 
-
-        # action server
-        self._gunresult = terminator.msg.CommandsResult()
-        self._aimresult = terminator.msg.CommandsResult()
-
-        self._aimfeedback = terminator.msg.CommandsFeedback()
-
-        self._asgun = actionlib.SimpleActionServer("guncommander", terminator.msg.CommandsAction, execute_cb=self.gunexecute_cb, auto_start = False)
-        self._asaim = actionlib.SimpleActionServer("aimcommander", terminator.msg.CommandsAction, execute_cb=self.aimexecute_cb, auto_start = False)
-
-        self._asgun.start()
-        self._asaim.start()
+        rospy.loginfo("after getting the pose")
 
         print("Done Initializing Baxter Left Arm")
+        pre_grasp = self.move_gripper(pose_tag, pre_standoff=True)
+        rospy.loginfo("move gripper")
+
+    def get_transform(pose):
+
+        quat_list = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
+
+        homo_rot = quaternion_matrix(quat_list)
+
+        T = np.array([[homo_rot[0][0], homo_rot[0][1], homo_rot[0][2], pose.position.x],
+                    [homo_rot[1][0], homo_rot[1][1], homo_rot[1][2], pose.position.y],
+                    [homo_rot[2][0], homo_rot[2][1], homo_rot[2][2], pose.position.z],
+                    [0,              0,              0,              1]])
+
+        return T
+
+    def extract_pose(T):
+    # extract euler angles
+        rot = np.array([[T[0][0], T[0][1], T[0][2]],
+                        [T[1][0], T[1][1], T[1][2]],
+                        [T[2][0], T[2][1], T[2][2]]])
 
 
+        ax, ay, az = euler_from_matrix(rot)
+        quat = quaternion_from_euler(ax, ay, az)
 
-    def gunexecute_cb(self, goal):
-    	"""
-    	Action service callback function
-    	sets action variables
+        trans = np.array([T[0][3], T[1][3], T[2][3]])
 
-    	ARGS: action goal
-    	"""
+        return quat, trans
 
-        print("in gun cb")
-        # helper variables
-        r = rospy.Rate(1)
-        success = True
-
-        if goal.actionname == "get_gun":
-            if self._asgun.is_preempt_requested():
-                rospy.loginfo('%s: Preempted' % 'left_arm got gun')
-                self._asgun.set_preempted()
-                success = False
-
-            arm_init_pose(self.init_goal, self.left_group, self.position_tol, self.orientation_tol, "Left")
-            success = self.pick_up_gun(self.tag_pose)
-
-        else:
-            print(":( - didn't get gun")
-
-        if success:
-            self._gunresult.completion = True
-            rospy.loginfo('%s: Succeeded' % 'left_arm got gun')
-            print(self._gunresult.completion)
-            self._asgun.set_succeeded(self._gunresult)
-        else:
-            self._gunresult.completion = False
-            self._asgun.set_succeeded(self._gunresult)
+    def plan_cartesian_path(EE_pose, goal, move_group):
 
 
-    def aimexecute_cb(self, goal):
-    	"""
-    	Action service callback function
-    	sets action variables
+        print("Terminator Planning Trajectory")
 
-    	ARGS: action goal
-    	"""
+        plan_attempts = 3
+        iter = 10
+        waypoints = []
 
-        print("in aim cb")
-        # helper variables
-        r = rospy.Rate(1)
-        success = True
+        xiter = np.linspace(EE_pose.position.x, goal.position.x, iter)
+        yiter = np.linspace(EE_pose.position.y, goal.position.y, iter)
+        ziter = np.linspace(EE_pose.position.z, goal.position.z, iter)
 
-        if goal.actionname == "aim_gun":
-            if self._asaim.is_preempt_requested():
-                rospy.loginfo('%s: Preempted' % self._action_name)
-                self._asaim.set_preempted()
-                success = False
+        for i in range(iter):
+            p = copy.deepcopy(EE_pose)
+            p.position.x = xiter[i]
+            p.position.y = yiter[i]
+            p.position.z = ziter[i]
 
-            success = self.aim()
+            # last waypoint use pose of goal
+            if i == iter - 1:
 
-            self._aimfeedback.feedback_state = "Still Aiming"
-            self._asaim.publish_feedback(self._aimfeedback)
+                p = copy.deepcopy(goal)
+                p.position.x = xiter[i]
+                p.position.y = yiter[i]
+                p.position.z = ziter[i]
 
-        else:
-            print(":( - didn't aim gun")
+            waypoints.append(p)
 
-        if success:
-            self._aimresult.completion = True
-            rospy.loginfo('%s: Succeeded' % 'left_arm aimed gun')
-            print(self._aimresult.completion)
-            self._asaim.set_succeeded(self._aimresult)
-        else:
-            self._aimresult.completion = False
-            self._asaim.set_succeeded(self._aimresult)
+        #self.left_group.set_max_velocity_scaling_factor(0.1)
+        #self.left_group.set_max_acceleration_scaling_factor(0.1)
+
+        plan_success = True
+        fraction = 0.0
+        #plan, fraction = move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
+
+        ctr = 0
+
+        while fraction < 0.8:
+            plan, fraction = move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
+
+            if ctr == plan_attempts:
+                plan_success = False
+                break
+
+            ctr += 1
+
+        #self.left_group.set_max_velocity_scaling_factor(0.6)
+        #self.left_group.set_max_acceleration_scaling_factor(0.6)
+
+        return plan, fraction, plan_success
+
+def made_it(goal, actual, position_tol, orientation_tol):
 
 
-    def target_position(self, msg):
-        """ callback for subscriber to /targetBox
+        goal = pose_to_list(goal)
+        actual = pose_to_list(actual)
 
-        Positions the y and z coordinates of the left EE to align with the target
+        pos_goal = True
+        orient_goal = True
 
-        Args:
-            msg (Point): x, y, and z location in pixels of target
-        """
-        # in pixel coordinates, center of bounding box
-        # coordinate axis is in baxters frames
-        self.target_y = msg.x
-        self.target_z = msg.y
+        # check if final position is within tolerance
+        for index in range(3):
+            if abs(actual[index] - goal[index]) > position_tol:
+                pos_goal = False
+
+        # check if final orientation is within tolerance
+        for index in range(3, 6):
+            if abs(actual[index] - goal[index]) > orientation_tol:
+                orient_goal = False
+
+        if pos_goal and orient_goal:
+            print("Goal Reached")
+            return True
+
+        print("Goal Not Reached!")
+        return False
+
+def display_trajectory(plan, robot, display_trajectory_publisher):
+
+    display_traj = moveit_msgs.msg.DisplayTrajectory()
+    display_traj.trajectory_start = robot.get_current_state()
+    display_traj.trajectory.append(plan)
+    display_trajectory_publisher.publish(display_traj)
 
 
+def move_arm(EE_pose, pose_goal, move_group, robot, display_trajectory_publisher):
+    """ Attempts to move the arm in a cartesian path using waypoints if the plan
+    to follow tha path fails a target pose goal will be set and the path planning
+    component is aborted.
+
+    Args:
+        EE_pose (Pose): pose of the end effector
+        goal (Pose): pose of the goal configuration
+        move_group: move group commander
+        robot: moveit robot commander
+        display_trajectory_publisher: rviz publisher
+    """
+
+    plan, fraction, plan_success = plan_cartesian_path(EE_pose, pose_goal, move_group)
+
+    print("The fraction of path covered")
+    print(fraction)
+
+    if plan_success:
+        # display plan in rviz
+        print("Using cartesian path")
+        display_trajectory(plan, robot, display_trajectory_publisher)
+        rospy.sleep(2)
+
+        print("============ Press `Enter` to move gripper ============")
+        raw_input()
+
+        try:
+            # execute path
+            move_group.execute(plan, wait=True)
+            move_group.stop()
+            move_group.clear_pose_targets()
+
+            # wait for baxter to get to goal
+            rospy.sleep(2)
+
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.loginfo("Service call failed: %s" % (e,))
+
+    else:
+        print("Using pose goal")
+        print("============ Press `Enter` to move gripper ============")
+        raw_input()
+
+        try:
+            move_group.set_pose_target(pose_goal)
+            plan = move_group.go(wait=True)
+            move_group.stop()
+            move_group.clear_pose_targets()
+
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.loginfo("Service call failed: %s" % (e,))
+
+    
     def tag_position(self, msg):
         """ callback for april tag position
 
@@ -248,53 +343,54 @@ class PianoPlay(object):
         """
 
         self.tag_pose = msg
+        print(tag_pose)
 
 
-    def pick_up_gun(self, pose_tag):
-        """ callback function for Subscriber to /tag_pose
+    # def pick_up_gun(self, pose_tag):
+    #     """ callback function for Subscriber to /tag_pose
 
-        The trajectory is divided into five stages
+    #     The trajectory is divided into five stages
 
-        1) move gripper to standoff location
-        2) move gripper to handle
-        3) grasp the gun
-        4) pick up gun vertically to standoff location
-        5) go the aiming position
+    #     1) move gripper to standoff location
+    #     2) move gripper to handle
+    #     3) grasp the gun
+    #     4) pick up gun vertically to standoff location
+    #     5) go the aiming position
 
-        Args:
-            pose_tag (Pose): pose of the april tag
-        """
+    #     Args:
+    #         pose_tag (Pose): pose of the april tag
+    #     """
 
-        # stage 1
-        print("============ Move to gun ============")
-        rospy.sleep(2)
-        pre_grasp = self.move_gripper(pose_tag, pre_standoff=True)
+    #     # stage 1
+    #     print("============ Move to gun ============")
+    #     rospy.sleep(2)
+    #     pre_grasp = self.gggggg   m m mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm[                                                                 (pose_tag, pre_standoff=True)
 
-        # stage 2
-        print("============ Move to gun handle ============")
-        grasp_handle = self.move_gripper(pose_tag, grasp=True)
+    #     # stage 2
+    #     print("============ Move to gun handle ============")
+    #     grasp_handle = self.move_gripper(pose_tag, grasp=True)
 
-        # stage 3
-        if pre_grasp and grasp_handle:
-            print("============ Press `Enter` to close left gripper ============")
-            #raw_input()
-            self.left_gripper.close()
-            rospy.sleep(2)
+    #     # stage 3
+    #     if pre_grasp and grasp_handle:
+    #         print("============ Press `Enter` to close left gripper ============")
+    #         #raw_input()
+    #         self.left_gripper.close()
+    #         rospy.sleep(2)
 
-        # stage 4
-        print("============ Lift gun off Table ============")
-        post_grasp = self.move_gripper(pose_tag, post_standoff=True)
+    #     # stage 4
+    #     print("============ Lift gun off Table ============")
+    #     post_grasp = self.move_gripper(pose_tag, post_standoff=True)
 
 
-        # stage 5
-        print("============ Moving too Aiming Pose  ============")
-        aiming_placed = self.move_gripper(pose_tag, aiming=True)
+    #     # stage 5
+    #     print("============ Moving too Aiming Pose  ============")
+    #     aiming_placed = self.move_gripper(pose_tag, aiming=True)
 
-        if post_grasp and aiming_placed:
-            # made it this far it is a success
-            return True
+    #     if post_grasp and aiming_placed:
+    #         # made it this far it is a success
+    #         return True
 
-        return False
+    #     return False
 
     def move_gripper(self, pose_tag, pre_standoff=False, post_standoff=False, grasp=False, aiming=False):
         """ moves gripper to a goal pose
@@ -308,7 +404,8 @@ class PianoPlay(object):
 
         # get pose of EE
         left_EE_pose = self.left_group.get_current_pose().pose
-
+        print("left ee pose is")
+        print(left_EE_pose)
         # compute transformation of gun relative to EE
         Teg = get_transform(pose_tag)
 
@@ -348,18 +445,6 @@ class PianoPlay(object):
             pose_goal.position.y = left_EE_pose.position.y #+ self.dy
             pose_goal.position.z = left_EE_pose.position.z + self.dz
 
-
-        elif aiming:
-            print("aiming")
-            pose_goal.position.x = 0.87
-            pose_goal.position.y = 0.30
-            pose_goal.position.z = 0.20
-
-        pose_goal.orientation.x = self.orientation_x
-        pose_goal.orientation.y = self.orientation_y
-        pose_goal.orientation.z = self.orientation_z
-        pose_goal.orientation.w = self.orientation_w
-
         # attempt to move left arm to goal
         move_arm(left_EE_pose, pose_goal, self.left_group, self.robot, self.display_trajectory_publisher)
 
@@ -375,95 +460,6 @@ class PianoPlay(object):
 
         # check if orientation and position of goal are met
         return made_it(pose_goal, left_EE_pose, self.position_tol, self.orientation_tol)
-
-
-    def aim(self):
-        """
-        Positions the y and z coordinates of the left EE to align with the target
-
-        Returns
-            success (bool): if camera is aligned with target returns True
-        """
-
-        if self.target_y == None or self.target_z == None:
-            print("=== ERROR NOT TARGET FOUND ===")
-            return False
-
-
-        print("==== AIMING ====")
-
-        # goal tolerance in pixels
-        tol = 50
-        y_goal = 640 / 2
-        z_goal = 400 / 2
-
-
-        # amount to move EE
-        dy = 0.0254 / 2
-        dz = 0.0254 / 2
-
-
-        # move in y direction until goal is met
-        y_error = y_goal - self.target_y
-        z_error = z_goal - self.target_z
-
-        print("Y ERROR: ", y_error)
-        print("Z ERROR: ", z_error)
-
-        # does not need to aim
-        success = True
-
-
-        if abs(y_error) > tol or abs(z_error) > tol:
-
-            # still aiming
-            success = False
-
-            # get state feedback
-            left_EE_pose = self.left_group.get_current_pose().pose
-
-            pose_goal = geometry_msgs.msg.Pose()
-            pose_goal = left_EE_pose
-
-
-            if abs(y_error) > tol:
-
-                # move arm to left
-                if y_error > 0:
-                    print("Moving to the left")
-                    pose_goal.position.y = left_EE_pose.position.y + dy
-
-                # move right:
-                else:
-                    print("Moving to the right")
-                    pose_goal.position.y = left_EE_pose.position.y - dy
-
-
-            if abs(z_error) > tol:
-
-                # move arm to left
-                if z_error > 0:
-                    print("Moving to the up")
-                    pose_goal.position.z = left_EE_pose.position.z + dz
-
-                # move right:
-                else:
-                    print("Moving to the down")
-                    pose_goal.position.z = left_EE_pose.position.z - dz
-
-
-
-            # plan and move
-            plan, fraction, plan_success = plan_cartesian_path(left_EE_pose, pose_goal, self.left_group)
-            # execute path
-            self.left_group.execute(plan, wait=True)
-            self.left_group.stop()
-            self.left_group.clear_pose_targets()
-
-            rospy.sleep(1)
-
-        return success
-
 
 def main():
 

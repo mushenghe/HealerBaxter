@@ -71,11 +71,10 @@ class imageProcessor:
         self.pub2.publish(data)
 
     def apriltag_callback(self, data):
-        rospy.loginfo("In AprilTag callback")
 
         myPose = Pose()
 
-        print( data.detections[0].pose.pose.pose )
+        # print( data.detections[0].pose.pose.pose )
         
         if ( len(data.detections) > 0):
             #rospy.loginfo("Start publishing, pose is %lf,%lf,%lf",data.detections[0].pose.pose.pose.position.x,data.detections[0].pose.pose.pose.position.y,data.detections[0].pose.pose.pose.position.z)
@@ -97,8 +96,6 @@ class imageProcessor:
 
     # Constructor method
     def __init__(self):
-
-        rospy.loginfo("initilaize the key_locate node")
         self.leftCamera = rospy.Subscriber("/cameras/left_hand_camera/image", Image, self.process_initial_image)
 
         self.calibrationMatrixLeftSub = rospy.Subscriber("/cameras/left_hand_camera/camera_info_std", CameraInfo, self.publish_left_calibration)
