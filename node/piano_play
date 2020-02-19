@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+"""
+DESCRIPTION:
++ Puts Baxter into final pose after firing gun
+
+PUBLISHERS:
++ display_trajectory_publisher (/move_group/display_planned_path) - displays trajectory in RViz
+
+ACTION SERVICES:
++ _as (finalcommander) - Initiates action service for commander node
+"""
+
+import sys
+import rospy
+import copy
+import baxter_interface
+import moveit_commander
+import moveit_msgs.msg
+import geometry_msgs.msg
+from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped
+from baxter_interface import Gripper, CHECK_VERSION
+from std_msgs.msg import String, Bool
+from moveit_commander.conversions import pose_to_list
+from tf.transformations import quaternion_from_euler
+from gripper import *
+
+class InitialConfig(object):
+	"""
+	Initializes Baxter before moving to final position
+	"""
+
+	def __init__(self):
+
+		# rospy.loginfo("Ready for moving to the final pose")
+		rospy.loginfo("Initializing")
+		super(InitialConfig, self).__init__()
+		# First initialize moveit_commander and a rospy node:
+		moveit_commander.roscpp_initialize(sys.argv)
+		rospy.init_node("initial_pose", anonymous=True)
+		# Instantiate a RobotCommander object.
+		joint_state_topic = ['joint_states:=/robot/joint_states']
+		moveit_commander.roscpp_initialize(joint_state_topic)
+		# self.add_box()
+		self.robot = moveit_commander.RobotCommander()
+		# Instantiate a PlanningSceneInterface object.
+		self.scene = moveit_commander.PlanningSceneInterface()
+		# Instantiate a MoveGroupCommander object. This object is an interface to a planning group
+		baxter_interface.RobotEnable().enable()
+		rospy.sleep(0.25)
+		rospy.loginfo("Ready for moving to the initial pose")
+
+		self.left_group = moveit_commander.MoveGroupCommander('left_arm')
+		self.right_group = moveit_commander.MoveGroupCommander("right_arm")
+		# setting parameters for left arm group
+		self.position_tolerance = 0.05
+		self.orientation_tolerance = 0.3
+		self.left_group.set_goal_position_tolerance(self.position_tolerance)
+		self.left_group.set_goal_orientation_tolerance(self.orientation_tolerance)
+		self.left_group.set_planning_time(10.0)
+		self.left_group.allow_replanning(True)
+		self.left_group.set_max_velocity_scaling_factor(0.2)
+		self.left_group.set_max_acceleration_scaling_factor(0.1)
+		#set parameters for right arm group
+		self.right_group.set_goal_position_tolerance(self.position_tolerance)
+		self.right_group.set_goal_orientation_tolerance(self.orientation_tolerance)
+		self.right_group.set_planning_time(10.0)
+		self.right_group.allow_replanning(True)
+		self.right_group.set_max_velocity_scaling_factor(0.2)
+		self.right_group.set_max_acceleration_scaling_factor(0.1)
+
+		rospy.loginfo("calibrate the gripper")
+		# State Gripper (L/R)
+		self.left_gripper = Gripper('left', CHECK_VERSION)
+		# Reboot Gripper
+		self.left_gripper.reboot()
+		# Calibrate Gripper
+		self.left_gripper.calibrate()
+		# Open Gripper
+
+		#add table in the scene
+		self.add_box()
+
+		#trajectory in RVIZ
+		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
+				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
+		# self._feedback = terminator.msg.CommandsFeedback()
+		# self._result = terminator.msg.CommandsResult()
+
+		print("initial pose started")
+
+	def add_box(self):
+		""" Adds a box to the Planning Scene
+			so that Baxter knows to avoid it with
+			all its links 
+		"""
+		# Add Objects to Planning Scene
+		self.box_name = 'table'
+		self.box_pose = PoseStamped()
+		# Can reference to base frame
+		# Or can reference to EE finger frame
+		# for grasping
+		self.box_pose.header.frame_id = "base"
+		self.box_pose.pose.position.x = 1.15
+		self.box_pose.pose.position.z = -0.46
+		self.box_pose.pose.orientation.w = 1.0
+		# Length, Width, Height
+		self.scene.add_box(self.box_name, self.box_pose, size=(0.85,1.5,0.55))
+		# return self.wait_for_state_update(box_is_known=True, timeout=timeout)
+	
+
+	def move2initial(self):
+		"""
+		Moves Baxter to the initial configuration
+		"""
+		left = baxter_interface.Limb('left')
+    	right = baxter_interface.Limb('right')
+
+    	lcmd ={'left_s0':-0.107378655152,'left_s1':-0.426063163835,'left_e0':-0.992869064959,'left_e1':1.20494190888,'left_w0':0.911951578398,'left_w1':1.32574289593,'left_w2':-0.376208788229} #0.681423}
+    	rcmd = {'right_s0':0.495475794487,'right_s1':-0.539194246942,'right_e0':0.65462630123,'right_e1':1.17464578832,'right_w0':-0.627014647048,'right_w1':1.18461666344,'right_w2':0.493941813699} #0.681423}
+
+    	left.move_to_joint_positions(lcmd)
+    	right.move_to_joint_positions(rcmd)
+
+def main():
+
+	try:
+		initial_config = InitialConfig()
+		initial_config.move2initial()
+
+	except rospy.ROSInterruptException:
+		return
+	except KeyboardInterrupt:
+		return
+
+	rospy.spin()
+
+
+if __name__ == '__main__':
+	main()

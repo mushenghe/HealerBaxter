@@ -7,10 +7,16 @@
     <node name="key_locate" pkg="healer" type="key_locate" output='screen'/>
     <node name="my_image_view" pkg="image_view" type = "image_view" args = "image:=/tag_detections_image" />
 
-   <node name = "my_image_proc" pkg = "image_proc" type = "image_proc" />
+    <node name = "my_image_proc" pkg = "image_proc" type = "image_proc" />
+  <!-- Go to the initial position -->
 
-    <node name="piano_play" pkg="healer" type="piano_play" output="screen"/>
-  <!-- Start the baxter interface package -->
+    <node name="initial_pose" pkg="healer" type="initial_pose" output="screen"/> 
+    
+  <!-- Start playing the piano -->
+<!-- 
+    <node name="piano_play" pkg="healer" type="piano_play" output="screen"/>  -->
+
+  <!--Start the baxter interface package--> 
     <node name="joint_trajectory_action_server" pkg="baxter_interface" type="joint_trajectory_action_server.py" />
     <include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch" />
 

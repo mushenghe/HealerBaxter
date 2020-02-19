@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosunit
   std_msgs
 )
+catkin_python_setup()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -159,6 +160,16 @@ include_directories(
 ## Install ##
 #############
 
+install(PROGRAMS
+  config/connect.sh
+  node/initial_pose
+  node/key_locate
+  node/piano_play
+  src/${PROJECT_NAME}/gripper.py
+
+
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 

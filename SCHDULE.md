@@ -19,8 +19,8 @@
 | week2  1.15 - 1.21  |   |   | Trouble using GPU: 1. how to copy files from local to remote(Could not resolve hostname beast: Name or service not known lost connection---ssh.service?) 2.import keras(unable to open X server `' @ error/import.c/ImportImageCommand/358)3. acceess denied (sudo)  | read paper, find(easy to understand&good model)  |
 | week3  1.22 - 1.28  |   |   |  f |train a better model, start doing piano-playing part   |
 | week4  1.29 - 2.04  | get a model has 70 % accurency, can detect sad!, piano-playing part setup.  | 1. Apriltag detection failed to detect the tag on the keyboard  -- light condition? 2. failed to do real time detection, can't get the tag detected image -- didn't get the correct image input- remap? // didn't publish to the correct topic? --- the topic is in rostopic list  | CONOR/BLOB/LINE DETECTION|f   |
-| week5  2.05 - 2.11  |   | able to detect april tag through left wrist camera and publish the pose info. write the function to convert pose to baxter->tag transformation matrix   | baxter throws weird error |f   |
-| week6  2.12 - 2.18  |   |   |  f |f   |
+| week5  2.05 - 2.11  |   | able to detect april tag through left wrist camera and publish the pose info. write the function to convert pose to baxter->tag transformation matrix   | baxter throws weird error |KEEP MOVING FORWAED   |
+| week6  2.12 - 2.18  |   |   |  1. python module: can't find the python module I put in the src/my_package dir--->put the module at the same place with the node 2. when trying to move baxter to the first configuration, always extend the arm and stuck.---> use move_to_joint_positions instead of move to the end-effector position. rosrun baxter_examples joint_recorder.py can record the joint position|f   |
 | week7  2.19 - 2.25  |   |   |  f |f   |
 | week8  2.26 - 3.03  |  |  |  f |f   |
 | week9  3.04 - 3.10  |   |   |  f |f   |
