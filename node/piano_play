@@ -7,7 +7,8 @@ PUBLISHERS:
 + display_trajectory_publisher (/move_group/display_planned_path) - displays trajectory in RViz
 
 SUBSCRIBES:
-+ 
++ left_pose_sub(/left_tag_pose)  - tag1 pose for the left arm)
++ right_pose_sub(/right_tag_pose)  - tag2 pose for the right arm
 """
 
 import sys
@@ -17,14 +18,20 @@ import baxter_interface
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+import numpy as np
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped
 from baxter_interface import Gripper, CHECK_VERSION
 from std_msgs.msg import String, Bool
+from sensor_msgs.msg import Range
 from moveit_commander.conversions import pose_to_list
+import tf.transformations as tr
 from tf.transformations import quaternion_from_euler
+from tf.transformations import quaternion_matrix
+from tf.transformations import quaternion_from_euler
+from tf.transformations import euler_from_matrix
 from gripper import *
 
-class InitialConfig(object):
+class PianoPlay(object):
 	"""
 	Initializes Baxter before moving to final position
 	"""
@@ -32,11 +39,11 @@ class InitialConfig(object):
 	def __init__(self):
 
 		# rospy.loginfo("Ready for moving to the final pose")
-		rospy.loginfo("Initializing")
-		super(InitialConfig, self).__init__()
+		rospy.loginfo("finish the first config, piano playing node initializing")
+		super(PianoPlay, self).__init__()
 		# First initialize moveit_commander and a rospy node:
 		moveit_commander.roscpp_initialize(sys.argv)
-		rospy.init_node("initial_pose", anonymous=True)
+		rospy.init_node("piano_play", anonymous=True)
 		# Instantiate a RobotCommander object.
 		joint_state_topic = ['joint_states:=/robot/joint_states']
 		moveit_commander.roscpp_initialize(joint_state_topic)
@@ -46,73 +53,155 @@ class InitialConfig(object):
 		self.scene = moveit_commander.PlanningSceneInterface()
 		# Instantiate a MoveGroupCommander object. This object is an interface to a planning group
 		baxter_interface.RobotEnable().enable()
+
 		rospy.sleep(0.25)
 		rospy.loginfo("Ready for moving to the initial pose")
+		self.move_group = moveit_commander.MoveGroupCommander('both_arms')
+		self.end_effector_link ='gripper'
+		self.leftcount = 0
+		self.rightcount = 0
+		self.quat_right={} 
+		self.trans_right={}
+		self.quat_left={} 
+		self.trans_left={}
 
-		self.left_group = moveit_commander.MoveGroupCommander('left_arm')
-		self.right_group = moveit_commander.MoveGroupCommander("right_arm")
 		# setting parameters for left arm group
 		self.position_tolerance = 0.05
 		self.orientation_tolerance = 0.3
-		self.left_group.set_goal_position_tolerance(self.position_tolerance)
-		self.left_group.set_goal_orientation_tolerance(self.orientation_tolerance)
-		self.left_group.set_planning_time(10.0)
-		self.left_group.allow_replanning(True)
-		self.left_group.set_max_velocity_scaling_factor(0.2)
-		self.left_group.set_max_acceleration_scaling_factor(0.1)
-		#set parameters for right arm group
-		self.right_group.set_goal_position_tolerance(self.position_tolerance)
-		self.right_group.set_goal_orientation_tolerance(self.orientation_tolerance)
-		self.right_group.set_planning_time(10.0)
-		self.right_group.allow_replanning(True)
-		self.right_group.set_max_velocity_scaling_factor(0.2)
-		self.right_group.set_max_acceleration_scaling_factor(0.1)
+		self.move_group.set_goal_position_tolerance(self.position_tolerance)
+		self.move_group.set_goal_orientation_tolerance(self.orientation_tolerance)
+		self.move_group.set_planning_time(10.0)
+		self.move_group.set_workspace([-2, -2, -2, 2, 2, 2])
+		self.move_group.allow_replanning(True)
+		self.move_group.set_max_velocity_scaling_factor(0.2)
+		self.move_group.set_max_acceleration_scaling_factor(0.1)
+
+		# important parameters for position adjustment
+		self.tag = 0.025 #cm
+		self.camera_offset = 0.045 #cm
+
+		self.prestand_z = 0.06
+
+		self.left_tag_pose = None
+		self.right_tag_pose = None
+
 
 		#trajectory in RVIZ
 		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
 
-		print("initial pose started")
+		self.left_pose_sub = rospy.Subscriber('/left_tag_pose', Pose, self.left_tag_position)
+		self.right_pose_sub = rospy.Subscriber('/right_tag_pose', Pose, self.right_tag_position)
+		
+		rospy.sleep(0.5)
 
-	def add_box(self):
-		""" Adds a box to the Planning Scene
-			so that Baxter knows to avoid it with
-			all its links 
+		print("start playing the piano")
+
+
+	def tag_in_base(self,pose_tag):
+		""" return transformation of tag relative to baxter """
+
+		# since we get the pose through left camera, the end effector is left gripper
+		left_EE_pose = self.move_group.get_current_pose(end_effector_link='left_gripper').pose
+		# print("pose tag")
+		# print(pose_tag)
+		# compute transformation of tag relative to EE
+		Tet = get_transform(pose_tag)
+		# print("transform of tag to ee")
+		# print(Tet)
+		# compute transformation of EE relative to baxter
+		Tbe = get_transform(left_EE_pose)
+		# tranformation from baxter to tag
+		Tbt = np.dot(Tbe, Tet)
+
+		return Tbt
+
+
+
+	def left_tag_position(self,msg):
+		""" callback for april tag position
+		Args:
+			msg (Pose): pose of the april tag
 		"""
-		# Add Objects to Planning Scene
-		self.box_name = 'table'
-		self.box_pose = PoseStamped()
-		# Can reference to base frame
-		# Or can reference to EE finger frame
-		# for grasping
-		self.box_pose.header.frame_id = "base"
-		self.box_pose.pose.position.x = 1.15
-		self.box_pose.pose.position.z = -0.46
-		self.box_pose.pose.orientation.w = 1.0
-		# Length, Width, Height
-		self.scene.add_box(self.box_name, self.box_pose, size=(0.85,1.5,0.55))
-		# return self.wait_for_state_update(box_is_known=True, timeout=timeout)
-	
+		if(self.leftcount < 1):
+			self.left_tag_pose = msg
+			Transformation = self.tag_in_base(self.left_tag_pose)
+			self.quat_left, self.trans_left = extract_pose(Transformation)
+			print("pose of left tag")
+			print(self.trans_left)
+			print(self.quat_left)
+			self.leftcount += 1
 
-	def move2initial(self):
+	def right_tag_position(self,msg):
+		""" callback for april tag position
+		Args:
+			msg (Pose): pose of the april tag
 		"""
-		Moves Baxter to the initial configuration
-		"""
-		left = baxter_interface.Limb('left')
-    	right = baxter_interface.Limb('right')
+		if(self.rightcount < 1):
+			self.right_tag_position = msg
+			Transformation = self.tag_in_base(self.right_tag_position)
+			self.quat_right, self.trans_right = extract_pose(Transformation)
+			print("pose of right tag")
+			print(self.trans_right)
+			print(self.quat_right)
+			self.rightcount +=1
 
-    	lcmd ={'left_s0':-0.107378655152,'left_s1':-0.426063163835,'left_e0':-0.992869064959,'left_e1':1.20494190888,'left_w0':0.911951578398,'left_w1':1.32574289593,'left_w2':-0.376208788229} #0.681423}
-    	rcmd = {'right_s0':0.495475794487,'right_s1':-0.539194246942,'right_e0':0.65462630123,'right_e1':1.17464578832,'right_w0':-0.627014647048,'right_w1':1.18461666344,'right_w2':0.493941813699} #0.681423}
+	def play_key(self,left_offset,right_offset,stand = False,poke = False):
+		"""move both arm to a goal pose"""
+		left_pose_goal = geometry_msgs.msg.Pose()
+		right_pose_goal = geometry_msgs.msg.Pose()
+		if stand:
+			print("pre-standoff")
+			left_pose_goal.position.x = self.trans_left[0] + self.camera_offset
+			left_pose_goal.position.y = self.trans_left[1] + left_offset
+			left_pose_goal.position.z = self.trans_left[2] + self.prestand_z
 
-    	left.move_to_joint_positions(lcmd)
-    	right.move_to_joint_positions(rcmd)
+			right_pose_goal.position.x = self.trans_right[0] + self.camera_offset
+			right_pose_goal.position.y = self.trans_right[1] + right_offset
+			right_pose_goal.position.z = self.trans_right[2] + self.prestand_z
+
+		elif poke:
+			print("play")
+			left_pose_goal.position.x = self.trans_left[0] + self.camera_offset
+			left_pose_goal.position.y = self.trans_left[1] + left_offset
+			left_pose_goal.position.z = self.trans_left[2] 
+
+			right_pose_goal.position.x = self.trans_right[0] + self.camera_offset
+			right_pose_goal.position.y = self.trans_right[1] + right_offset
+			right_pose_goal.position.z = self.trans_right[2] 
+			
+
+		left_pose_goal.orientation.x = 0
+		left_pose_goal.orientation.y = -1
+		left_pose_goal.orientation.z = 0
+		left_pose_goal.orientation.w = 0
+
+		right_pose_goal.orientation.x = 0
+		right_pose_goal.orientation.y = -1
+		right_pose_goal.orientation.z = 0
+		right_pose_goal.orientation.w = 0
+
+		self.move_group.set_pose_target(left_pose_goal,"left_gripper")
+		self.move_group.set_pose_target(left_pose_goal,"right_gripper")
+
+		plan = self.move_group.plan()
+
+		#Execute the plan
+		confirmed = raw_input('Keep probing downwards? y/n')
+		if confirmed == "y":
+			self.move_group.execute(plan)
+
+
+
+		
+
+
 
 def main():
 
 	try:
-		initial_config = InitialConfig()
-		initial_config.move2initial()
-
+		play_piano = PianoPlay()
+		play_piano.play_key(0,0,stand = True)
 	except rospy.ROSInterruptException:
 		return
 	except KeyboardInterrupt:
