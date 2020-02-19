@@ -6,8 +6,7 @@ DESCRIPTION:
 PUBLISHERS:
 + display_trajectory_publisher (/move_group/display_planned_path) - displays trajectory in RViz
 
-ACTION SERVICES:
-+ _as (finalcommander) - Initiates action service for commander node
+
 """
 
 import sys
@@ -68,23 +67,9 @@ class InitialConfig(object):
 		self.right_group.set_max_velocity_scaling_factor(0.2)
 		self.right_group.set_max_acceleration_scaling_factor(0.1)
 
-		rospy.loginfo("calibrate the gripper")
-		# State Gripper (L/R)
-		self.left_gripper = Gripper('left', CHECK_VERSION)
-		# Reboot Gripper
-		self.left_gripper.reboot()
-		# Calibrate Gripper
-		self.left_gripper.calibrate()
-		# Open Gripper
-
-		#add table in the scene
-		self.add_box()
-
 		#trajectory in RVIZ
 		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
-		# self._feedback = terminator.msg.CommandsFeedback()
-		# self._result = terminator.msg.CommandsResult()
 
 		print("initial pose started")
 

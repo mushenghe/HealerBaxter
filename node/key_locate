@@ -77,8 +77,13 @@ class imageProcessor:
         # print( data.detections[0].pose.pose.pose )
         
         if ( len(data.detections) > 0):
-            #rospy.loginfo("Start publishing, pose is %lf,%lf,%lf",data.detections[0].pose.pose.pose.position.x,data.detections[0].pose.pose.pose.position.y,data.detections[0].pose.pose.pose.position.z)
-            self.desiredTagPose.publish( data.detections[0].pose.pose.pose )
+            rospy.loginfo("Start publishing, pose 1 is %lf,%lf,%lf",data.detections[0].pose.pose.pose.position.x,data.detections[0].pose.pose.pose.position.y,data.detections[0].pose.pose.pose.position.z)            
+            rospy.loginfo("Start publishing, pose 2 is %lf,%lf,%lf",data.detections[1].pose.pose.pose.position.x,data.detections[1].pose.pose.pose.position.y,data.detections[1].pose.pose.pose.position.z)
+            '''change here'''
+            # self.desiredTagPose.publish(data.detections[0].pose.pose.pose )
+            self.desired_leftTagPose.publish(data.detections[0].pose.pose.pose )
+            self.desired_righttTagPose.publish(data.detections[1].pose.pose.pose )
+        
         else:
             pass
 
@@ -116,7 +121,13 @@ class imageProcessor:
 
         # Subscribe to the april tag classification data stream
         self.apriltags = rospy.Subscriber("/tag_detections", AprilTagDetectionArray, self.apriltag_callback)
-        self.desiredTagPose = rospy.Publisher("/tag_pose", Pose, queue_size = 1 )
+        
+        '''change here'''
+        # self.desiredTagPose = rospy.Publisher("/tag_pose", Pose, queue_size = 1 )
+        self.desired_leftTagPose = rospy.Publisher("/left_tag_pose", Pose, queue_size = 1 )
+        self.desired_rightTagPose = rospy.Publisher("/right_tag_pose", Pose, queue_size = 1 )
+        
+
 
 # Main Function
 if __name__ == "__main__":

@@ -63,12 +63,21 @@ def main():
 	scene = moveit_commander.PlanningSceneInterface()
 	add_box(scene)
 	rospy.loginfo("calibrate the gripper")
-	# State Gripper (L/R)
+	# State Gripper (L)
 	left_gripper = Gripper('left', CHECK_VERSION)
 	# Reboot Gripper
 	left_gripper.reboot()
 	# Calibrate Gripper
 	left_gripper.calibrate()
+	#1 key in between
+	left.command_position(15)
+
+	# State Gripper (R)
+	right_gripper = Gripper('right', CHECK_VERSION)
+	# Reboot Gripper
+	right_gripper.reboot()
+	# Calibrate Gripper
+	right_gripper.calibrate()
 
 	try:
 		move2initial()
