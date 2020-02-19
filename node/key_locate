@@ -40,7 +40,8 @@ type = sensor_msgs/Image
 
 + publishRectified (/camera_rect/image_rect) - Redistributes the rectified image to the april tags detector
 
-+ desiredTagPose (/tag_pose) - Publishes desired gun pose
++ desired_leftTagPose(/left_tag_pose)  - tag1 pose for the left arm
++ desired_rightTagPose(/right_tag_pose)  - tag2 pose for the right arm
 """
 
 import math
