@@ -51,11 +51,35 @@ def move2initial():
 		left = baxter_interface.Limb('left')
 		right = baxter_interface.Limb('right')
 
-		lcmd ={'left_s0':-0.107378655152,'left_s1':-0.426063163835,'left_e0':-0.992869064959,'left_e1':1.20494190888,'left_w0':0.911951578398,'left_w1':1.32574289593,'left_w2':-0.376208788229} #0.681423}
+		lcmd ={'left_s0':-0.439102000532,'left_s1':-0.459043750775,'left_e0':-0.956820516444,'left_e1':1.11788849917,'left_w0':0.92307293911,'left_w1':1.27818949151,'left_w2':-0.546480655684} #0.609835}
 		rcmd = {'right_s0':0.495475794487,'right_s1':-0.539194246942,'right_e0':0.65462630123,'right_e1':1.17464578832,'right_w0':-0.627014647048,'right_w1':1.18461666344,'right_w2':0.493941813699} #0.681423}
 
 		left.move_to_joint_positions(lcmd)
 		right.move_to_joint_positions(rcmd)
+
+def hard_code_try():
+		"""
+		hardcode the first notes for both arm
+		"""
+
+		#prestand for the first note:
+		left_prestand = baxter_interface.Limb('left')
+		right_prestand = baxter_interface.Limb('right')
+
+		lcmd_prestand ={'left_s0':-0.327888393411,'left_s1':-0.24812139244,'left_e0':-0.81416030317,'left_e1':0.967558381959,'left_w0':0.890859342564,'left_w1':1.17311180754,'left_w2':-0.336708782941} #0.609835}
+		rcmd_prestand = {'right_s0':0.866315649958,'right_s1':-0.447922390063,'right_e0':0.103543703182,'right_e1':1.04118945978,'right_w0':-0.111980597516,'right_w1':1.00130595929,'right_w2':0.246587411653} #0.681423}
+
+		left_prestand.move_to_joint_positions(lcmd_prestand)
+		right_prestand.move_to_joint_positions(rcmd_prestand)
+		#play the first note:
+		left_first = baxter_interface.Limb('left')
+		right_first = baxter_interface.Limb('right')
+
+		lcmd_first ={'left_s0':-0.393082576896,'left_s1':-0.190980608092,'left_e0':-0.71790300873,'left_e1':0.956437021247,'left_w0':0.884723419413,'left_w1':1.06956810435,'left_w2':-0.343611696486} #0.609835}
+		rcmd_first = {'right_s0':0.874369049095,'right_s1':-0.343995191683,'right_e0':0.10009224641,'right_e1':1.01664576717,'right_w0':-0.115815549485,'right_w1':0.915786530368,'right_w2':0.320985479865} #0.681423}
+
+		left_first.move_to_joint_positions(lcmd_first)
+		right_first.move_to_joint_positions(rcmd_first)
 
 def main():
 	rospy.init_node("initial_pose", anonymous=True)
@@ -70,7 +94,7 @@ def main():
 	# Calibrate Gripper
 	left_gripper.calibrate()
 	#1 key in between
-	left.command_position(15)
+	left_gripper.command_position(15)
 
 	# State Gripper (R)
 	right_gripper = Gripper('right', CHECK_VERSION)
@@ -81,6 +105,7 @@ def main():
 
 	try:
 		move2initial()
+		hard_code_try()
 	except rospy.ROSInterruptException:
 		return
 	except KeyboardInterrupt:

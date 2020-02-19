@@ -77,12 +77,12 @@ class imageProcessor:
         # print( data.detections[0].pose.pose.pose )
         
         if ( len(data.detections) > 0):
-            rospy.loginfo("Start publishing, pose 1 is %lf,%lf,%lf",data.detections[0].pose.pose.pose.position.x,data.detections[0].pose.pose.pose.position.y,data.detections[0].pose.pose.pose.position.z)            
-            rospy.loginfo("Start publishing, pose 2 is %lf,%lf,%lf",data.detections[1].pose.pose.pose.position.x,data.detections[1].pose.pose.pose.position.y,data.detections[1].pose.pose.pose.position.z)
-            '''change here'''
+            # rospy.loginfo("Start publishing, pose 1 is %lf,%lf,%lf",data.detections[0].pose.pose.pose.position.x,data.detections[0].pose.pose.pose.position.y,data.detections[0].pose.pose.pose.position.z)            
+            # rospy.loginfo("Start publishing, pose 2 is %lf,%lf,%lf",data.detections[1].pose.pose.pose.position.x,data.detections[1].pose.pose.pose.position.y,data.detections[1].pose.pose.pose.position.z)
+            # '''change here'''
             # self.desiredTagPose.publish(data.detections[0].pose.pose.pose )
             self.desired_leftTagPose.publish(data.detections[0].pose.pose.pose )
-            self.desired_righttTagPose.publish(data.detections[1].pose.pose.pose )
+            self.desired_rightTagPose.publish(data.detections[1].pose.pose.pose )
         
         else:
             pass

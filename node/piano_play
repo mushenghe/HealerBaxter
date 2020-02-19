@@ -6,7 +6,8 @@ DESCRIPTION:
 PUBLISHERS:
 + display_trajectory_publisher (/move_group/display_planned_path) - displays trajectory in RViz
 
-
+SUBSCRIBES:
++ 
 """
 
 import sys
