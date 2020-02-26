@@ -22,7 +22,7 @@ from baxter_interface import Gripper, CHECK_VERSION
 from std_msgs.msg import String, Bool
 from moveit_commander.conversions import pose_to_list
 from tf.transformations import quaternion_from_euler
-from gripper import *
+from healer import *
 
 def add_box(scene):
 		""" Adds a box to the Planning Scene
@@ -37,10 +37,10 @@ def add_box(scene):
 		# for grasping
 		box_pose.header.frame_id = "base"
 		box_pose.pose.position.x = 1.15
-		box_pose.pose.position.z = -0.46
+		box_pose.pose.position.z = -0.48
 		box_pose.pose.orientation.w = 1.0
 		# Length, Width, Height
-		scene.add_box(box_name, box_pose, size=(0.85,1.5,0.55))
+		scene.add_box(box_name, box_pose, size=(0.80,1.52,0.76))
 		# return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 	
 
@@ -85,26 +85,28 @@ def main():
 	rospy.init_node("initial_pose", anonymous=True)
 	rospy.loginfo("Initializing")
 	scene = moveit_commander.PlanningSceneInterface()
+	rospy.sleep(2)
 	add_box(scene)
-	rospy.loginfo("calibrate the gripper")
-	# State Gripper (L)
-	left_gripper = Gripper('left', CHECK_VERSION)
-	# Reboot Gripper
-	left_gripper.reboot()
-	# Calibrate Gripper
-	left_gripper.calibrate()
-	#1 key in between
-	left_gripper.command_position(15)
-
-	# State Gripper (R)
-	right_gripper = Gripper('right', CHECK_VERSION)
-	# Reboot Gripper
-	right_gripper.reboot()
-	# Calibrate Gripper
-	right_gripper.calibrate()
-
+	rospy.sleep(2)
 	try:
+
 		move2initial()
+		rospy.loginfo("calibrate the gripper")
+		# State Gripper (L)
+		left_gripper = Gripper('left', CHECK_VERSION)
+		# Reboot Gripper
+		left_gripper.reboot()
+		# Calibrate Gripper
+		left_gripper.calibrate()
+		#1 key in between
+		left_gripper.command_position(15)
+
+		# State Gripper (R)
+		right_gripper = Gripper('right', CHECK_VERSION)
+		# Reboot Gripper
+		right_gripper.reboot()
+		# Calibrate Gripper
+		right_gripper.calibrate()
 		# hard_code_try()
 	except rospy.ROSInterruptException:
 		return
