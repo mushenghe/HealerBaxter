@@ -63,7 +63,7 @@ https://www.paralleldots.com/facial-emotion
 http://www.pitt.edu/~emotion/ck-spread.htm
 
 Use tensorflow on my computer:
-``` source ./deep_learning/bin/activate ```
+``` source ./deep_learning/bin/activate 
 to deactivate :
 deactivate 
 
@@ -76,4 +76,18 @@ scp -P 922 test mushenghe@129.105.69.167:~/
 
 ctrl-v   go to what ever you want  x
 ctrl-v shift i
+```
 
+running in gazebo simulation environment:
+
+run ```roslaunch baxter_gazebo baxter_world.launch``` to start the simulator
+
+run ```roslaunch baxter_moveit_config baxter_grippers.launch``` to bringup robot
+
+run ```rosrun baxter_tools enable_robot.py -e``` to enable the robot:
+
+run ```rosrun baxter_interface joint_trajectory_action_server.py``` to start the joint trajectory controller
+
+run ```roslaunch healer piano_play.launch``` to launch the initial_pose code
+
+run ```rosrun healer piano_play``` to run the playing piano node
