@@ -77,7 +77,8 @@ class PianoPlay(object):
 
 		# important parameters for position adjustment
 		self.tag = 0.025 #cm
-		self.camera_offset = 0.038 #cm
+		self.key_length = 0.022
+		self.left_tunning = 0.02 #cm
 
 		self.prestand_z = 0.1
 
@@ -253,8 +254,8 @@ class PianoPlay(object):
 		if pre_standoff:
 			print("pre-standoff")
 
-			left_pose_goal.position.x = self.trans_left[0]
-			left_pose_goal.position.y = self.trans_left[1] + left_offset
+			left_pose_goal.position.x = self.trans_left[0] + self.left_tunning
+			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length
 			left_pose_goal.position.z = self.trans_left[2] + self.prestand_z
 			left_pose_goal.orientation.x = self.left_orientation_x
 			left_pose_goal.orientation.y = self.left_orientation_y
@@ -265,7 +266,7 @@ class PianoPlay(object):
 			print(left_pose_goal) 
 
 			right_pose_goal.position.x = self.trans_right[0]  
-			right_pose_goal.position.y = self.trans_right[1] + right_offset
+			right_pose_goal.position.y = self.trans_right[1] + right_offset * self.key_length
 			right_pose_goal.position.z = self.trans_right[2] + self.prestand_z 
 			right_pose_goal.orientation.x = self.right_orientation_x
 			right_pose_goal.orientation.y = self.right_orientation_y
@@ -277,8 +278,8 @@ class PianoPlay(object):
 
 		elif poke:
 			print("play")
-			left_pose_goal.position.x = self.trans_left[0]
-			left_pose_goal.position.y = self.trans_left[1] + left_offset
+			left_pose_goal.position.x = self.trans_left[0] + self.left_tunning
+			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length
 			left_pose_goal.position.z = self.trans_left[2] 
 			left_pose_goal.orientation.x = self.left_orientation_x
 			left_pose_goal.orientation.y = self.left_orientation_y
@@ -288,7 +289,7 @@ class PianoPlay(object):
 			print(left_pose_goal) 
 
 			right_pose_goal.position.x = self.trans_right[0] 
-			right_pose_goal.position.y = self.trans_right[1]  + right_offset
+			right_pose_goal.position.y = self.trans_right[1]  + right_offset * self.key_length
 			right_pose_goal.position.z = self.trans_right[2] 
 			right_pose_goal.orientation.y = self.right_orientation_y
 			right_pose_goal.orientation.z = self.right_orientation_z
