@@ -67,7 +67,7 @@ class PianoPlay(object):
 
 		# setting parameters for left arm group
 		self.position_tolerance = 0.05
-		self.orientation_tolerance = 0.3
+		self.orientation_tolerance = 0.02
 		self.move_group.set_goal_position_tolerance(self.position_tolerance)
 		self.move_group.set_goal_orientation_tolerance(self.orientation_tolerance)
 		self.move_group.set_planning_time(10.0)
@@ -84,15 +84,55 @@ class PianoPlay(object):
 		self.left_tag_pose = None
 		self.right_tag_pose = None
 
+		# self.left_orientation_x = -0.0075195
+		# self.left_orientation_y = 0.999649
+		# self.left_orientation_z = 0.0156364
+		# self.left_orientation_w = 0.0200044
+
+
+		# self.right_orientation_x = 0.0573664
+		# self.right_orientation_y = 0.99794
+		# self.right_orientation_z = -0.013948
+		# self.right_orientation_w = -0.0251204
+
+		self.left_orientation_x = 0.0
+		self.left_orientation_y = 1.0
+		self.left_orientation_z = 0.0
+		self.left_orientation_w = 0.0
+
+
+		self.right_orientation_x = 0.0
+		self.right_orientation_y = 1.0
+		self.right_orientation_z = 0.0
+		self.right_orientation_w = 0.0
+
+
+
 
 		#trajectory in RVIZ
 		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
 		
 		###############  publisher and subscriber  #####################
-		self.left_pose_sub = rospy.Subscriber('/left_tag_pose', Pose, self.left_tag_position)
-		self.right_pose_sub = rospy.Subscriber('/right_tag_pose', Pose, self.right_tag_position)
+		# self.left_pose_sub = rospy.Subscriber('/left_tag_pose', Pose, self.left_tag_position)
+		# self.right_pose_sub = rospy.Subscriber('/right_tag_pose', Pose, self.right_tag_position)
 		#################################################################
+		self.left_tag_pose = rospy.wait_for_message('/right_tag_pose' ,Pose)  
+		self.quat_left, self.trans_left = extract_pose(self.tag_in_base(self.left_tag_pose))
+		print("pose of left tag in base frame: \n")
+		print("trans of left tag in base frame: \n")
+		print(self.trans_left)
+		print("orientation of left tag in base frame: \n")
+		print(self.quat_left)
+		rospy.sleep(1)
+
+		self.right_tag_position = rospy.wait_for_message('/left_tag_pose',Pose)  
+		self.quat_right, self.trans_right = extract_pose(self.tag_in_base(self.right_tag_position))
+		print("pose of right tag")
+		print("trans of right tag in base frame: \n")
+		print(self.trans_right)
+		print("orientation of right tag in base frame: \n")
+		print(self.quat_right)
 		rospy.sleep(0.5)
 
 		print("start playing the piano")
@@ -130,7 +170,7 @@ class PianoPlay(object):
 
 		return Tbt
 
-	def test(self):
+	def test_simulation(self):
 		self.left_tag_pose = geometry_msgs.msg.Pose()
 		self.right_tag_pose = geometry_msgs.msg.Pose()
 
@@ -182,6 +222,7 @@ class PianoPlay(object):
 			print(self.quat_left)
 			self.leftcount += 1
 
+
 	def right_tag_position(self,msg):
 		""" callback for april tag position
 		Args:
@@ -201,64 +242,72 @@ class PianoPlay(object):
 
 	def move_to_keys(self,left_offset,right_offset,pre_standoff = False,poke = False):
 		"""move both arm to a goal pose"""
+		# left_pose_goal.position.x = 0.78373497
+		# left_pose_goal.position.y =  0.34865032
+		# left_pose_goal.position.z =  -0.16783931
+		# right_pose_goal.position.x = 0.78288658
+		# right_pose_goal.position.y = -0.11776263
+		# right_pose_goal.position.z = -0.18157599
 		left_pose_goal = geometry_msgs.msg.Pose()
 		right_pose_goal = geometry_msgs.msg.Pose()
 		if pre_standoff:
 			print("pre-standoff")
 
-			left_pose_goal.position.x = self.trans_left[0] 
+			left_pose_goal.position.x = self.trans_left[0]
 			left_pose_goal.position.y = self.trans_left[1] + left_offset
 			left_pose_goal.position.z = self.trans_left[2] + self.prestand_z
-			left_pose_goal.orientation.x = -0.0075195
-			left_pose_goal.orientation.y = 0.999649
-			left_pose_goal.orientation.z = 0.0156364
-			left_pose_goal.orientation.w = 0.0200044
+			left_pose_goal.orientation.x = self.left_orientation_x
+			left_pose_goal.orientation.y = self.left_orientation_y
+			left_pose_goal.orientation.z = self.left_orientation_z
+			left_pose_goal.orientation.w = self.left_orientation_w
 
 			print("left pose is")
 			print(left_pose_goal) 
 
-			right_pose_goal.position.x =self.trans_right[0] 
-			right_pose_goal.position.x =self.trans_right[1] + right_offset
-			right_pose_goal.position.z =self.trans_right[2] + self.prestand_z 
-			right_pose_goal.orientation.x = 0.0573664
-			right_pose_goal.orientation.y = 0.99794
-			right_pose_goal.orientation.z = -0.013948
-			right_pose_goal.orientation.w = -0.0251204
+			right_pose_goal.position.x = self.trans_right[0]  
+			right_pose_goal.position.y = self.trans_right[1] + right_offset
+			right_pose_goal.position.z = self.trans_right[2] + self.prestand_z 
+			right_pose_goal.orientation.x = self.right_orientation_x
+			right_pose_goal.orientation.y = self.right_orientation_y
+			right_pose_goal.orientation.z = self.right_orientation_z
+			right_pose_goal.orientation.w = self.right_orientation_w
+
 			print("right pose is")
 			print(right_pose_goal) 
 
 		elif poke:
 			print("play")
-
-			left_pose_goal.position.x = self.trans_left[0] 
+			left_pose_goal.position.x = self.trans_left[0]
 			left_pose_goal.position.y = self.trans_left[1] + left_offset
 			left_pose_goal.position.z = self.trans_left[2] 
+			left_pose_goal.orientation.x = self.left_orientation_x
+			left_pose_goal.orientation.y = self.left_orientation_y
+			left_pose_goal.orientation.z = self.left_orientation_z
+			left_pose_goal.orientation.w = self.left_orientation_w
+			print("left pose is")
+			print(left_pose_goal) 
 
 			right_pose_goal.position.x = self.trans_right[0] 
-			right_pose_goal.position.y = self.trans_right[1] + right_offset
+			right_pose_goal.position.y = self.trans_right[1]  + right_offset
 			right_pose_goal.position.z = self.trans_right[2] 
-			
+			right_pose_goal.orientation.y = self.right_orientation_y
+			right_pose_goal.orientation.z = self.right_orientation_z
+			right_pose_goal.orientation.w = self.right_orientation_w
 
-		left_pose_goal.orientation.x = -0.0075195
-		left_pose_goal.orientation.y = 0.999649
-		left_pose_goal.orientation.z = 0.0156364
-		left_pose_goal.orientation.w = 0.0200044
+			print("right pose is")
+			print(right_pose_goal)
+
+			# left_pose_goal.position.x = 0.78373497
+			# left_pose_goal.position.y = 0.34865032 + left_offset
+			# left_pose_goal.position.z = -0.16783931
 
 
-		right_pose_goal.orientation.x = 0.0573664
-		right_pose_goal.orientation.y = 0.99794
-		right_pose_goal.orientation.z = -0.013948
-		right_pose_goal.orientation.w = -0.0251204
+			# right_pose_goal.position.x =0.78288658 
+			# right_pose_goal.position.y =-0.11776263 + right_offset
+			# right_pose_goal.position.z =-0.18157599 
 
-		self.left_group = moveit_commander.MoveGroupCommander("left_arm")
-		self.right_group = moveit_commander.MoveGroupCommander("right_arm")
-		left_EE_pose = self.left_group.get_current_pose().pose
-		right_EE_pose = self.right_group.get_current_pose().pose
 
-		print("current left pose is: ")
-		print(left_EE_pose)
-		print("current right pose is: ")
-		print(right_EE_pose)
+
 
 		self.move_group.set_pose_target(left_pose_goal,"left_gripper")
 		self.move_group.set_pose_target(right_pose_goal,"right_gripper")
@@ -272,13 +321,6 @@ class PianoPlay(object):
 		if confirmed == "y":
 			self.move_group.execute(plan)
 			rospy.sleep(2)
-		#check if reach the plan
-		
-
-		left = made_it(left_pose_goal, left_EE_pose, self.position_tolerance, self.orientation_tolerance)
-		right = made_it(right_pose_goal, right_EE_pose, self.position_tolerance, self.orientation_tolerance)
-
-		return left and right
 
 
 	def go_right_tag(self):
@@ -300,12 +342,13 @@ class PianoPlay(object):
 		# right_pose_goal.position.x = 0.78288658
 		# right_pose_goal.position.y = -0.11776263
 		# right_pose_goal.position.z = -0.18157599
+		right_pose_goal.orientation.x = self.right_orientation_x
+		right_pose_goal.orientation.y = self.right_orientation_y
+		right_pose_goal.orientation.z = self.right_orientation_z
+		right_pose_goal.orientation.w = self.right_orientation_w
 
-		right_pose_goal.orientation.x = 0.0573664
-		right_pose_goal.orientation.y = 0.99794
-		right_pose_goal.orientation.z = -0.013948
-		right_pose_goal.orientation.w = -0.0251204
-
+		print("right pose goal is")
+		print(right_pose_goal)
 
 		right_group.set_pose_target(right_pose_goal)
 		plan = right_group.plan()
@@ -338,10 +381,14 @@ class PianoPlay(object):
 		# left_pose_goal.position.y =  0.34865032
 		# left_pose_goal.position.z =  -0.16783931
 
-		left_pose_goal.orientation.x = -0.0075195
-		left_pose_goal.orientation.y = 0.999649
-		left_pose_goal.orientation.z = 0.0156364
-		left_pose_goal.orientation.w = 0.0200044
+		left_pose_goal.orientation.x = self.left_orientation_x
+		left_pose_goal.orientation.y = self.left_orientation_y
+		left_pose_goal.orientation.z = self.left_orientation_z
+		left_pose_goal.orientation.w = self.left_orientation_w
+
+		print("left pose goal is")
+		print(left_pose_goal)
+
 
 		left_group.set_pose_target(left_pose_goal)
 		plan = left_group.plan()
@@ -364,39 +411,38 @@ class PianoPlay(object):
 
 		for i in range(8):
 			print("============ Execute the", i ,"th key ============")
-			# stage 1
+			# # stage 1
 			print("============ Move to pre_standoff position ============")
 			rospy.sleep(2)
 			pre_standoff = self.move_to_keys(left_offset[i], rignt_offset[i],pre_standoff=True)
 
-			# stage 2
+			# # stage 2
 			print("============ Play the key ============")
 			rospy.sleep(2)
 			key_play = self.move_to_keys(left_offset[i], rignt_offset[i],poke=True)
 
 			# stage 3
-			if pre_standoff and key_play:
-				print("============ Finish pressing the key, move back to pre_standoff position ============")
-				#raw_input()
-				finish = self.move_to_keys(left_offset[i],rignt_offset[i],pre_standoff=True)
-				rospy.sleep(2)
-			else:
-				break
+			print("============ Finish pressing the key, move back to pre_standoff position ============")
+			#raw_input()
+			finish = self.move_to_keys(left_offset[i],rignt_offset[i],pre_standoff=True)
+			rospy.sleep(2)
+
 
 
 
 
 
 def main():
+	
 	play_piano = PianoPlay()
-	play_piano.go_left_tag()
-	rospy.sleep(2)
-	play_piano.go_right_tag()
+	# play_piano.go_left_tag()
+	# rospy.sleep(2)
+	# play_piano.go_right_tag()
 	try:
 		rospy.sleep(2)
 		print("start playing")
 		play_piano.play_both_arm()	
-		# play_piano.test()
+		# play_piano.test_simulation()
 		# play_piano.play_both_arm(0,0,stand = True)
 
 	except rospy.ROSInterruptException:
