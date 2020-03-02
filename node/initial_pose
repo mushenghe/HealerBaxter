@@ -37,10 +37,10 @@ def add_box(scene):
 		# for grasping
 		box_pose.header.frame_id = "base"
 		box_pose.pose.position.x = 1.15
-		box_pose.pose.position.z = -0.48
+		box_pose.pose.position.z = -0.68
 		box_pose.pose.orientation.w = 1.0
 		# Length, Width, Height
-		scene.add_box(box_name, box_pose, size=(0.80,1.52,0.76))
+		scene.add_box(box_name, box_pose, size=(0.80,1.52,0.7))
 		# return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 	
 

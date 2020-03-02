@@ -88,6 +88,6 @@ run ```rosrun baxter_tools enable_robot.py -e``` to enable the robot:
 
 run ```rosrun baxter_interface joint_trajectory_action_server.py``` to start the joint trajectory controller
 
-run ```roslaunch healer piano_play.launch``` to launch the initial_pose code
+run ```rosrun healer initial_pose ``` to launch the initial_pose code
 
 run ```rosrun healer piano_play``` to run the playing piano node
