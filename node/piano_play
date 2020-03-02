@@ -78,7 +78,7 @@ class PianoPlay(object):
 		# important parameters for position adjustment
 		self.tag = 0.025 #cm
 		self.key_length = 0.022
-		self.left_tunning = 0.02 #cm
+		self.left_tunning = 0.15 #cm
 
 		self.prestand_z = 0.1
 
@@ -407,8 +407,8 @@ class PianoPlay(object):
 		2) move gripper to hit the key
 		3) move gripper back to standoff location
 		"""
-		left_offset = [0,2,3,2,1,0,-1,0]
-		rignt_offset = [0,5,6,5,4,3,2,1]
+		left_offset = [0,-2,-3,-2,-1,0,1,0]
+		rignt_offset = [0,-5,-6,-5,-4,-3,-2,-1]
 
 		for i in range(8):
 			print("============ Execute the", i ,"th key ============")
