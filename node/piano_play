@@ -118,7 +118,7 @@ class PianoPlay(object):
 		# self.left_pose_sub = rospy.Subscriber('/left_tag_pose', Pose, self.left_tag_position)
 		# self.right_pose_sub = rospy.Subscriber('/right_tag_pose', Pose, self.right_tag_position)
 		#################################################################
-		self.left_tag_pose = rospy.wait_for_message('/right_tag_pose' ,Pose)  
+		self.left_tag_pose = rospy.wait_for_message('/left_tag_pose' ,Pose)  
 		self.quat_left, self.trans_left = extract_pose(self.tag_in_base(self.left_tag_pose))
 		print("pose of left tag in base frame: \n")
 		print("trans of left tag in base frame: \n")
@@ -127,7 +127,7 @@ class PianoPlay(object):
 		print(self.quat_left)
 		rospy.sleep(1)
 
-		self.right_tag_position = rospy.wait_for_message('/left_tag_pose',Pose)  
+		self.right_tag_position = rospy.wait_for_message('/right_tag_pose',Pose)  
 		self.quat_right, self.trans_right = extract_pose(self.tag_in_base(self.right_tag_position))
 		print("pose of right tag")
 		print("trans of right tag in base frame: \n")
