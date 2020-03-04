@@ -21,8 +21,8 @@
     <include file="$(find baxter_moveit_config)/launch/baxter_grippers.launch" />
 
   <!-- Needed for state feedback for gripper pose --> 
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+<!--     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
       <param name="use_gui" value="false" />
-    </node> 
+    </node>  -->
 
 </launch>

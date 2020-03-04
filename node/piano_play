@@ -57,7 +57,17 @@ class PianoPlay(object):
 		rospy.sleep(0.25)
 
 		self.move_group = moveit_commander.MoveGroupCommander('both_arms')
-		self.end_effector_link ='gripper'
+		print "============ Reference frame: %s" % self.move_group.get_planning_frame()
+		print "============ Reference frame: %s" % self.move_group.get_end_effector_link()
+		print "============ Robot Groups:"
+		print self.move_group.get_group_names()
+		print "============ Printing robot state"
+		print self.move_group.get_current_state()
+		print "============"
+
+
+
+		# init parameters that would be used later
 		self.leftcount = 0
 		self.rightcount = 0
 		self.quat_right={} 
@@ -314,14 +324,17 @@ class PianoPlay(object):
 		self.move_group.set_pose_target(right_pose_goal,"right_gripper")
 
 		plan = self.move_group.plan()
-		display_trajectory(plan, self.robot, self.display_trajectory_publisher)
-
+		print "============ Waiting while RVIZ displays plan..."
 		rospy.sleep(2)
+		# display_trajectory(plan, self.robot, self.display_trajectory_publisher)
+
 		#Execute the plan
 		confirmed = raw_input('Execute? y/n')
 		if confirmed == "y":
 			self.move_group.execute(plan)
-			rospy.sleep(2)
+			self.move_group.stop()
+			self.move_group.clear_pose_targets()
+			# rospy.sleep(1)
 
 
 	def go_right_tag(self):
