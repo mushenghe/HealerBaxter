@@ -58,14 +58,6 @@ class PianoPlay(object):
 
 		self.move_group = moveit_commander.MoveGroupCommander('both_arms')
 		print "============ Reference frame: %s" % self.move_group.get_planning_frame()
-		print "============ Reference frame: %s" % self.move_group.get_end_effector_link()
-		print "============ Robot Groups:"
-		print self.move_group.get_group_names()
-		print "============ Printing robot state"
-		print self.move_group.get_current_state()
-		print "============"
-
-
 
 		# init parameters that would be used later
 		self.leftcount = 0
@@ -76,7 +68,7 @@ class PianoPlay(object):
 		self.trans_left={}
 
 		# setting parameters for left arm group
-		self.position_tolerance = 0.05
+		self.position_tolerance = 0.02
 		self.orientation_tolerance = 0.02
 		self.move_group.set_goal_position_tolerance(self.position_tolerance)
 		self.move_group.set_goal_orientation_tolerance(self.orientation_tolerance)
@@ -95,27 +87,28 @@ class PianoPlay(object):
 		self.left_tag_pose = None
 		self.right_tag_pose = None
 
-		# self.left_orientation_x = -0.0075195
-		# self.left_orientation_y = 0.999649
-		# self.left_orientation_z = 0.0156364
-		# self.left_orientation_w = 0.0200044
+
+		self.left_orientation_x = -0.0075195
+		self.left_orientation_y = 0.999649
+		self.left_orientation_z = 0.0156364
+		self.left_orientation_w = 0.0200044
 
 
-		# self.right_orientation_x = 0.0573664
-		# self.right_orientation_y = 0.99794
-		# self.right_orientation_z = -0.013948
-		# self.right_orientation_w = -0.0251204
+		self.right_orientation_x = 0.0573664
+		self.right_orientation_y = 0.99794
+		self.right_orientation_z = -0.013948
+		self.right_orientation_w = -0.0251204
 
-		self.left_orientation_x = 0.0
-		self.left_orientation_y = 1.0
-		self.left_orientation_z = 0.0
-		self.left_orientation_w = 0.0
+		# self.left_orientation_x = 0.000000
+		# self.left_orientation_y = 0.100000
+		# self.left_orientation_z = 0.000000
+		# self.left_orientation_w = 0.000000
 
 
-		self.right_orientation_x = 0.0
-		self.right_orientation_y = 1.0
-		self.right_orientation_z = 0.0
-		self.right_orientation_w = 0.0
+		# self.right_orientation_x = 0.000000
+		# self.right_orientation_y = 0.100000
+		# self.right_orientation_z = 0.000000
+		# self.right_orientation_w = 0.000000
 
 
 
@@ -123,11 +116,6 @@ class PianoPlay(object):
 		#trajectory in RVIZ
 		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
-		
-		###############  publisher and subscriber  #####################
-		# self.left_pose_sub = rospy.Subscriber('/left_tag_pose', Pose, self.left_tag_position)
-		# self.right_pose_sub = rospy.Subscriber('/right_tag_pose', Pose, self.right_tag_position)
-		#################################################################
 		self.left_tag_pose = rospy.wait_for_message('/left_tag_pose' ,Pose)  
 		self.quat_left, self.trans_left = extract_pose(self.tag_in_base(self.left_tag_pose))
 		print("pose of left tag in base frame: \n")
@@ -160,6 +148,7 @@ class PianoPlay(object):
 		left_EE_pose.position.x = 0.754
 		left_EE_pose.position.y = 0.187
 		left_EE_pose.position.z = 0.147	
+
 		left_EE_pose.orientation.x = 0.709 
 		left_EE_pose.orientation.y = -0.704
 		left_EE_pose.orientation.z = 0.001
@@ -264,7 +253,7 @@ class PianoPlay(object):
 		if pre_standoff:
 			print("pre-standoff")
 
-			left_pose_goal.position.x = self.trans_left[0] + self.left_tunning
+			left_pose_goal.position.x = self.trans_left[0] 
 			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length
 			left_pose_goal.position.z = self.trans_left[2] + self.prestand_z
 			left_pose_goal.orientation.x = self.left_orientation_x
@@ -288,7 +277,7 @@ class PianoPlay(object):
 
 		elif poke:
 			print("play")
-			left_pose_goal.position.x = self.trans_left[0] + self.left_tunning
+			left_pose_goal.position.x = self.trans_left[0] 
 			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length
 			left_pose_goal.position.z = self.trans_left[2] 
 			left_pose_goal.orientation.x = self.left_orientation_x
@@ -356,6 +345,12 @@ class PianoPlay(object):
 		# right_pose_goal.position.x = 0.78288658
 		# right_pose_goal.position.y = -0.11776263
 		# right_pose_goal.position.z = -0.18157599
+
+
+		# right_pose_goal.orientation.x = 0.0573664
+		# right_pose_goal.orientation.y = 0.99794
+		# right_pose_goal.orientation.z = -0.013948
+		# right_pose_goal.orientation.w = -0.0251204
 		right_pose_goal.orientation.x = self.right_orientation_x
 		right_pose_goal.orientation.y = self.right_orientation_y
 		right_pose_goal.orientation.z = self.right_orientation_z
@@ -372,6 +367,9 @@ class PianoPlay(object):
 		confirmed = raw_input('Keep probing downwards? y/n')
 		if confirmed == "y":
 			right_group.execute(plan)
+			right_group.stop()
+			right_group.clear_pose_targets()
+
 
 	def go_left_tag(self):
 		"""move the left arm to 0.1m above the left tag"""
@@ -395,10 +393,20 @@ class PianoPlay(object):
 		# left_pose_goal.position.y =  0.34865032
 		# left_pose_goal.position.z =  -0.16783931
 
+		# left_pose_goal.orientation.x  = -0.0075195
+		# left_pose_goal.orientation.y = 0.999649
+		# left_pose_goal.orientation.z = 0.0156364
+		# left_pose_goal.orientation.w = 0.0200044
 		left_pose_goal.orientation.x = self.left_orientation_x
 		left_pose_goal.orientation.y = self.left_orientation_y
 		left_pose_goal.orientation.z = self.left_orientation_z
 		left_pose_goal.orientation.w = self.left_orientation_w
+
+
+		# left_pose_goal.orientation.x = self.left_orientation_x
+		# left_pose_goal.orientation.y = self.left_orientation_y
+		# left_pose_goal.orientation.z = self.left_orientation_z
+		# left_pose_goal.orientation.w = self.left_orientation_w
 
 		print("left pose goal is")
 		print(left_pose_goal)
@@ -412,6 +420,8 @@ class PianoPlay(object):
 		confirmed = raw_input('Keep probing downwards? y/n')
 		if confirmed == "y":
 			left_group.execute(plan)
+			left_group.stop()
+			left_group.clear_pose_targets()
 
 	def play_both_arm(self):
 		""" start playing the piano, move both arm together
@@ -457,7 +467,7 @@ def main():
 		print("start playing")
 		play_piano.play_both_arm()	
 		# play_piano.test_simulation()
-		# play_piano.play_both_arm(0,0,stand = True)
+
 
 	except rospy.ROSInterruptException:
 		return
