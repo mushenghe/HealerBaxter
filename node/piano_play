@@ -52,6 +52,8 @@ class PianoPlay(object):
 		self.robot = moveit_commander.RobotCommander()
 		# Instantiate a PlanningSceneInterface object.
 		self.scene = moveit_commander.PlanningSceneInterface()
+		self.left_limb = baxter_interface.Limb('left')
+		self.right_limb = baxter_interface.Limb('right')
 		# Instantiate a MoveGroupCommander object. This object is an interface to a planning group
 		
 		rospy.sleep(0.25)
@@ -118,7 +120,7 @@ class PianoPlay(object):
 		#trajectory in RVIZ
 		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
-		self.left_tag_pose = rospy.wait_for_message('/right_tag_pose' ,Pose)  
+		self.left_tag_pose = rospy.wait_for_message('/left_tag_pose' ,Pose)  
 		self.quat_left, self.trans_left = extract_pose(self.tag_in_base(self.left_tag_pose))
 		print("pose of left tag in base frame: \n")
 		print("trans of left tag in base frame: \n")
@@ -127,7 +129,7 @@ class PianoPlay(object):
 		print(self.quat_left)
 		rospy.sleep(1)
 
-		self.right_tag_position = rospy.wait_for_message('left_tag_pose',Pose)  
+		self.right_tag_position = rospy.wait_for_message('right_tag_pose',Pose)  
 		self.quat_right, self.trans_right = extract_pose(self.tag_in_base(self.right_tag_position))
 		print("pose of right tag")
 		print("trans of right tag in base frame: \n")
@@ -242,7 +244,7 @@ class PianoPlay(object):
 			print(self.quat_right)
 			self.rightcount +=1
 
-	def move_to_keys(self,left_offset,right_offset,pre_standoff = False,poke = False):
+	def move_to_keys(self,left_offset,right_offset,x_left,y_left,x_right,y_right,pre_standoff = False,poke = False):
 		"""move both arm to a goal pose"""
 		# left_pose_goal.position.x = 0.78373497
 		# left_pose_goal.position.y =  0.34865032
@@ -252,11 +254,14 @@ class PianoPlay(object):
 		# right_pose_goal.position.z = -0.18157599
 		left_pose_goal = geometry_msgs.msg.Pose()
 		right_pose_goal = geometry_msgs.msg.Pose()
+		left_force = self.left_limb.endpoint_effort()['force']
+		right_force = self.right_limb.endpoint_effort()['force']
+		force_thresh = 3.0
 		if pre_standoff:
 			print("pre-standoff")
 
-			left_pose_goal.position.x = self.trans_left[0] 
-			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length
+			left_pose_goal.position.x = self.trans_left[0] + x_left
+			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length + y_left
 			left_pose_goal.position.z = self.trans_left[2] + self.prestand_z
 			left_pose_goal.orientation.x = self.left_orientation_x
 			left_pose_goal.orientation.y = self.left_orientation_y
@@ -266,8 +271,8 @@ class PianoPlay(object):
 			print("left pose is")
 			print(left_pose_goal) 
 
-			right_pose_goal.position.x = self.trans_right[0]  
-			right_pose_goal.position.y = self.trans_right[1] + right_offset * self.key_length
+			right_pose_goal.position.x = self.trans_right[0] + x_right
+			right_pose_goal.position.y = self.trans_right[1] + right_offset * self.key_length + y_right
 			right_pose_goal.position.z = self.trans_right[2] + self.prestand_z 
 			right_pose_goal.orientation.x = self.right_orientation_x
 			right_pose_goal.orientation.y = self.right_orientation_y
@@ -276,11 +281,25 @@ class PianoPlay(object):
 
 			print("right pose is")
 			print(right_pose_goal) 
+			self.move_group.set_pose_target(left_pose_goal,"left_gripper")
+			self.move_group.set_pose_target(right_pose_goal,"right_gripper")
+
+			plan = self.move_group.plan()
+			print "============ Waiting while RVIZ displays plan..."
+			rospy.sleep(0.5)
+			# display_trajectory(plan, self.robot, self.display_trajectory_publisher)
+
+			#Execute the plan
+			# confirmed = raw_input('Execute? y/n')
+			# if confirmed == "y":
+			self.move_group.execute(plan)
+			self.move_group.stop()
+			self.move_group.clear_pose_targets()
 
 		elif poke:
 			print("play")
-			left_pose_goal.position.x = self.trans_left[0] - self.xoffset
-			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length + self.left_tunning
+			left_pose_goal.position.x = self.trans_left[0] - self.xoffset + x_left
+			left_pose_goal.position.y = self.trans_left[1] + left_offset * self.key_length + self.left_tunning + y_left
 			left_pose_goal.position.z = self.trans_left[2] 
 			left_pose_goal.orientation.x = self.left_orientation_x
 			left_pose_goal.orientation.y = self.left_orientation_y
@@ -289,8 +308,8 @@ class PianoPlay(object):
 			print("left pose is")
 			print(left_pose_goal) 
 
-			right_pose_goal.position.x = self.trans_right[0] + self.xoffset
-			right_pose_goal.position.y = self.trans_right[1]  + right_offset * self.key_length + self.right_tunning
+			right_pose_goal.position.x = self.trans_right[0] + self.xoffset + x_right
+			right_pose_goal.position.y = self.trans_right[1]  + right_offset * self.key_length + self.right_tunning + y_right
 			right_pose_goal.position.z = self.trans_right[2] 
 			right_pose_goal.orientation.x = self.right_orientation_x
 			right_pose_goal.orientation.y = self.right_orientation_y
@@ -311,26 +330,51 @@ class PianoPlay(object):
 
 
 
-		try:
-			self.move_group.set_pose_target(left_pose_goal,"left_gripper")
-			self.move_group.set_pose_target(right_pose_goal,"right_gripper")
+		# try:
+		# 	self.move_group.set_pose_target(left_pose_goal,"left_gripper")
+		# 	self.move_group.set_pose_target(right_pose_goal,"right_gripper")
 
-			plan = self.move_group.plan()
-			print "============ Waiting while RVIZ displays plan..."
-			rospy.sleep(0.5)
-			# display_trajectory(plan, self.robot, self.display_trajectory_publisher)
+		# 	plan = self.move_group.plan()
+		# 	print "============ Waiting while RVIZ displays plan..."
+		# 	rospy.sleep(0.5)
+		# 	# display_trajectory(plan, self.robot, self.display_trajectory_publisher)
 
-			#Execute the plan
-			# confirmed = raw_input('Execute? y/n')
-			# if confirmed == "y":
-			self.move_group.execute(plan)
-			self.move_group.stop()
-			self.move_group.clear_pose_targets()
-				# rospy.sleep(1)
-		except (rospy.ServiceException, rospy.ROSException), e:
-			rospy.loginfo("Service call failed: %s" % (e,))
+		# 	#Execute the plan
+		# 	# confirmed = raw_input('Execute? y/n')
+		# 	# if confirmed == "y":
+		# 	self.move_group.execute(plan)
+		# 	self.move_group.stop()
+		# 	self.move_group.clear_pose_targets()
 
+			while(left_force.x **2 +left_force.y **2 + left_force.z **2 < force_thresh**2 or right_force.x **2 +right_force.y **2 + right_force.z **2 < force_thresh**2):
+				rospy.sleep(0.5)
+				left_force = self.left_limb.endpoint_effort()['force']
+				right_force = self.right_limb.endpoint_effort()['force']
+				if(left_force.x **2 +left_force.y **2 + left_force.z **2 < force_thresh**2):
+					left_pose_goal.position.z = left_pose_goal.position.z - 0.02
+					if(right_force.x **2 +right_force.y **2 + right_force.z **2 < force_thresh**2):
+						right_pose_goal.position.z = right_pose_goal.position.z - 0.01
+				else:
+					right_pose_goal.position.z = right_pose_goal.position.z - 0.01
 
+				self.move_group.set_pose_target(left_pose_goal,"left_gripper")
+				self.move_group.set_pose_target(right_pose_goal,"right_gripper")
+				plan = self.move_group.plan()
+				print "============ Waiting while RVIZ displays plan..."
+				rospy.sleep(0.5)
+
+				#Execute the plan
+				# confirmed = raw_input('Execute? y/n')
+				# if confirmed == "y":
+				self.move_group.execute(plan)
+				self.move_group.stop()
+				self.move_group.clear_pose_targets()
+					# else:
+					# 	break
+				rospy.logdebug("Starting to probe in a new position") 
+
+		# except (rospy.ServiceException, rospy.ROSException), e:
+		# 	rospy.loginfo("Service call failed: %s" % (e,))
 
 	def go_right_tag(self):
 		"""move the right arm to 0.1m above the right tag"""
@@ -437,24 +481,26 @@ class PianoPlay(object):
 		3) move gripper back to standoff location
 		"""
 		left_offset = [0,-2,-3,-2,-1,0,1,0]
-		rignt_offset = [0,-5,-6,-5,-4,-3,-2,-1]
+		rignt_offset = [0,-4,-5,-4,-3,-2,-1,0]
+		x_left = [0,0,0.015,0,-0.01,0,0,0]
+		y_left = [0.01,-0.008,-0.01,0.005,0,-0.01,0.005,0.002]
+		x_right = [0,0,-0.01,0,0.01,-0.005,0,0]
+		y_right = [-0.008,-0.040,-0.022,-0.022,-0.018,-0.025,-0.022,-0.022]
 
 		for i in range(8):
 			print("============ Execute the", i ,"th key ============")
 			# # stage 1
-			print("============ Move to pre_standoff position ============")
+			print("============ Move to ",i,"pre_standoff position ============")
+			pre_standoff = self.move_to_keys(left_offset[i], rignt_offset[i],x_left[i],y_left[i],x_right[i],y_right[i],pre_standoff=True)
 			rospy.sleep(0.5)
-			pre_standoff = self.move_to_keys(left_offset[i], rignt_offset[i],pre_standoff=True)
-
 			# # stage 2
-			print("============ Play the key ============")
+			print("============ Play the ",i,"key ============")
+			key_play = self.move_to_keys(left_offset[i], rignt_offset[i],x_left[i],y_left[i],x_right[i],y_right[i],poke=True)
 			rospy.sleep(0.5)
-			key_play = self.move_to_keys(left_offset[i], rignt_offset[i],poke=True)
-
 			# stage 3
-			print("============ Finish pressing the key, move back to pre_standoff position ============")
+			print("============ Finish pressing the ",i,"key, move back to pre_standoff position ============")
 			#raw_input()
-			finish = self.move_to_keys(left_offset[i],rignt_offset[i],pre_standoff=True)
+			finish = self.move_to_keys(left_offset[i],rignt_offset[i],x_left[i],y_left[i],x_right[i],y_right[i],pre_standoff=True)
 			rospy.sleep(0.5)
 		print("============ Finish playing the piano ============")	
 
