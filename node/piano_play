@@ -510,7 +510,6 @@ class PianoPlay(object):
 def main():
 	
 	play_piano = PianoPlay()
-	if_played = False
 	while not rospy.is_shutdown():
 		f = open("/home/mushenghe/winter_project/src/healer/emotion_detection/emotion.txt",'r',encoding = 'utf-8')
 		label = str(f.read())
@@ -521,20 +520,15 @@ def main():
 		else:
 			rospy.sleep(1)
 	print("Detect emotion: ",label)
-	# try:
-	rospy.sleep(2)
-	print("start playing")
-	play_piano.play_both_arm()	
-
-
-
-
-	
+	try:
+		rospy.sleep(2)
+		print("start playing")
+		play_piano.play_both_arm()	
 		# play_piano.test_simulation()
-	# except rospy.ROSInterruptException:
-	# 	return
-	# except KeyboardInterrupt:
-	# 	return
+	except rospy.ROSInterruptException:
+		return
+	except KeyboardInterrupt:
+		return
 
 	# play_piano.go_left_tag()
 	# rospy.sleep(2)
