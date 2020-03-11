@@ -31,7 +31,7 @@ from tf.transformations import quaternion_from_euler
 from tf.transformations import euler_from_matrix
 # from path_planner import PathPlanner
 from healer import *
-
+from io import open
 class PianoPlay(object):
 	"""
 	Initializes Baxter before moving to final position
@@ -122,11 +122,11 @@ class PianoPlay(object):
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
 		self.left_tag_pose = rospy.wait_for_message('/left_tag_pose' ,Pose)  
 		self.quat_left, self.trans_left = extract_pose(self.tag_in_base(self.left_tag_pose))
-		print("pose of left tag in base frame: \n")
-		print("trans of left tag in base frame: \n")
-		print(self.trans_left)
-		print("orientation of left tag in base frame: \n")
-		print(self.quat_left)
+		# print("pose of left tag in base frame: \n")
+		# print("trans of left tag in base frame: \n")
+		# print(self.trans_left)
+		# print("orientation of left tag in base frame: \n")
+		# print(self.quat_left)
 		rospy.sleep(1)
 
 		self.right_tag_position = rospy.wait_for_message('right_tag_pose',Pose)  
@@ -507,28 +507,35 @@ class PianoPlay(object):
 
 
 
-
-
 def main():
 	
 	play_piano = PianoPlay()
+	if_played = False
+	while not rospy.is_shutdown():
+		f = open("/home/mushenghe/winter_project/src/healer/emotion_detection/emotion.txt",'r',encoding = 'utf-8')
+		label = f.read()
+		print(label)
+		if(label == 'Sad'):
+			print("detect")
+			break
+		else:
+			rospy.sleep(1)
+	print("Detect emotion: ", label)
+	# try:
+	rospy.sleep(2)
+	print("start playing")
+	play_piano.play_both_arm()	
+		# play_piano.test_simulation()
+	# except rospy.ROSInterruptException:
+	# 	return
+	# except KeyboardInterrupt:
+	# 	return
+
 	# play_piano.go_left_tag()
 	# rospy.sleep(2)
 	# play_piano.go_right_tag()
-	try:
-		rospy.sleep(2)
-		print("start playing")
-		play_piano.play_both_arm()	
-		# play_piano.test_simulation()
-
-
-	except rospy.ROSInterruptException:
-		return
-	except KeyboardInterrupt:
-		return
-
-	# rospy.spin()
-
+	
+	
 
 if __name__ == '__main__':
 	main()

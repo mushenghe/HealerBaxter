@@ -10,28 +10,7 @@ classifier =load_model('/home/mushenghe/winter_project/src/healer/emotion_detect
 
 class_labels = ['Angry','Happy','Neutral','Sad','Surprise']
 
-# def face_detector(img):
-#     # Convert image to grayscale
-#     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-#     faces = face_classifier.detectMultiScale(gray,1.3,5)
-#     if faces is ():
-#         return (0,0,0,0),np.zeros((48,48),np.uint8),img
-
-#     for (x,y,w,h) in faces:
-#         cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-#         roi_gray = gray[y:y+h,x:x+w]
-
-#     try:
-#         roi_gray = cv2.resize(roi_gray,(48,48),interpolation=cv2.INTER_AREA)
-#     except:
-#         return (x,w,y,h),np.zeros((48,48),np.uint8),img
-#     return (x,w,y,h),roi_gray,img
-
-
 cap = cv2.VideoCapture(0)
-
-
-
 while True:
     # Grab a single frame of video
     ret, frame = cap.read()
@@ -57,6 +36,12 @@ while True:
             label=class_labels[preds.argmax()]
             label_position = (x,y)
             cv2.putText(frame,label,label_position,cv2.FONT_HERSHEY_SIMPLEX,2,(0,255,0),3)
+
+        # write the emotion lable to the communication file
+            with open("emotion.txt",'w',encoding = 'utf-8') as f:
+                f.write(label)
+                f.write('\n')
+
         else:
             cv2.putText(frame,'No Face Found',(20,60),cv2.FONT_HERSHEY_SIMPLEX,2,(0,255,0),3)
     cv2.imshow('Emotion Detector',frame)
