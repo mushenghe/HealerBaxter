@@ -131,21 +131,21 @@ class PianoPlay(object):
 
 		self.right_tag_position = rospy.wait_for_message('right_tag_pose',Pose)  
 		self.quat_right, self.trans_right = extract_pose(self.tag_in_base(self.right_tag_position))
-		print("pose of right tag")
-		print("trans of right tag in base frame: \n")
-		print(self.trans_right)
-		print("orientation of right tag in base frame: \n")
-		print(self.quat_right)
+		# print("pose of right tag")
+		# print("trans of right tag in base frame: \n")
+		# print(self.trans_right)
+		# print("orientation of right tag in base frame: \n")
+		# print(self.quat_right)
 		rospy.sleep(0.5)
 
-		print("start playing the piano")
+		print("Finish node initialization")
 
 
 	def tag_in_base(self,pose_tag):
 		""" return transformation of tag relative to baxter """
 
-		print("pose tag recieved: \n")
-		print(pose_tag)
+		# print("pose tag recieved: \n")
+		# print(pose_tag)
 		# since we get the pose through left camera, the end effector is left gripper
 		left_EE_pose = geometry_msgs.msg.Pose()
 
@@ -198,15 +198,15 @@ class PianoPlay(object):
 
 		Transformation_left = self.tag_in_base(self.left_tag_pose)
 		self.quat_left, self.trans_left = extract_pose(Transformation_left)
-		print("pose of left tag in base frame: \n")
-		print(self.trans_left)
-		print(self.quat_left)
+		# print("pose of left tag in base frame: \n")
+		# print(self.trans_left)
+		# print(self.quat_left)
 
 		Transformation_right = self.tag_in_base(self.right_tag_pose)
 		self.quat_right, self.trans_right = extract_pose(Transformation_right)
-		print("pose of right tag in base frame: \n")
-		print(self.trans_right)
-		print(self.quat_right)
+		# print("pose of right tag in base frame: \n")
+		# print(self.trans_right)
+		# print(self.quat_right)
 
 
 	def left_tag_position(self,msg):
@@ -219,11 +219,11 @@ class PianoPlay(object):
 			Transformation = self.tag_in_base(self.left_tag_pose)
 			self.quat_left, self.trans_left = extract_pose(Transformation)
 			rospy.sleep(2)
-			print("pose of left tag in base frame: \n")
-			print("trans of left tag in base frame: \n")
-			print(self.trans_left)
-			print("orientation of left tag in base frame: \n")
-			print(self.quat_left)
+			# print("pose of left tag in base frame: \n")
+			# print("trans of left tag in base frame: \n")
+			# print(self.trans_left)
+			# print("orientation of left tag in base frame: \n")
+			# print(self.quat_left)
 			self.leftcount += 1
 
 
@@ -237,11 +237,11 @@ class PianoPlay(object):
 			Transformation = self.tag_in_base(self.right_tag_position)
 			self.quat_right, self.trans_right = extract_pose(Transformation)
 			rospy.sleep(2)
-			print("pose of right tag")
-			print("trans of right tag in base frame: \n")
-			print(self.trans_right)
-			print("orientation of right tag in base frame: \n")
-			print(self.quat_right)
+			# print("pose of right tag")
+			# print("trans of right tag in base frame: \n")
+			# print(self.trans_right)
+			# print("orientation of right tag in base frame: \n")
+			# print(self.quat_right)
 			self.rightcount +=1
 
 	def move_to_keys(self,left_offset,right_offset,x_left,y_left,x_right,y_right,pre_standoff = False,poke = False):
@@ -256,7 +256,7 @@ class PianoPlay(object):
 		right_pose_goal = geometry_msgs.msg.Pose()
 		left_force = self.left_limb.endpoint_effort()['force']
 		right_force = self.right_limb.endpoint_effort()['force']
-		force_thresh = 3.0
+		force_thresh = 1.0
 		if pre_standoff:
 			print("pre-standoff")
 
@@ -513,18 +513,23 @@ def main():
 	if_played = False
 	while not rospy.is_shutdown():
 		f = open("/home/mushenghe/winter_project/src/healer/emotion_detection/emotion.txt",'r',encoding = 'utf-8')
-		label = f.read()
+		label = str(f.read())
 		print(label)
-		if(label == 'Sad'):
+		if(label == 'Sad\n'):
 			print("detect")
 			break
 		else:
 			rospy.sleep(1)
-	print("Detect emotion: ", label)
+	print("Detect emotion: ",label)
 	# try:
 	rospy.sleep(2)
 	print("start playing")
 	play_piano.play_both_arm()	
+
+
+
+
+	
 		# play_piano.test_simulation()
 	# except rospy.ROSInterruptException:
 	# 	return
