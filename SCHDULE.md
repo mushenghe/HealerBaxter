@@ -24,7 +24,7 @@
 | week7  2.19 - 2.25  |   | get the correct pose,able to move both arm to the tag place in simulation  | 1. box not work? 2. tag orientation hard to find. 3. motion plan for controlling both arm at a time is not as good as controlling separate --> cartesian xxxx 4. connection issue (both simulation and real robot)|1. send to matt the dependencies installed 2. transfer learning(after training the model add your) 3. add inflation layer to obstacle 4.  Mutable Robot State Publisher    |
 | week8  2.26 - 3.03  | 1. run code on baxter 2.Explore the buildin IK to see if works better than Moveit 3. add inflation layer to obstacle 4.  Mutable Robot State Publisher 5. take a look at transfer learning|  |  f |f   |
 | week9  3.04 - 3.10  | make baxter play the piano  | finally play the piano!!! (not very accurate)  | 1. tag index keep changing(guess: the first tag been detected is set to index 0 --> not correct)---> after run the initial pose, echo that tag pose topic and modify my code.  3. not go straight downward -->have already keep orientation fixed. -->threshold |1)ros spin might be the reason why the node can't die. 2)change gripper configuration|
-| week10 3.11 - 3.17  |1. use april tag id to index it 2. add force control 3. tuning parameters 4. communicate via python file I/O (https://www.programiz.com/python-programming/file-operation) OR pipe file(https://www.cnblogs.com/52php/p/5840229.html)|   |   ||
+| week10 3.11 - 3.17  |1. publish april tag based on tag id 2. add force control 3. integrated! communication success |   | parameter tuning... weird issue(can't play the key)   ||
 2 urdf(on the robot description---internal)(robot state publisher/moveit)
 
 
