@@ -1,7 +1,17 @@
 # HealerBaxter
-Author: Musheng He
-## Project Description:
-We live in an era in which communication seems simpler than any times, a friend is only one text away or one video chat away. Although communication may be easier and faster, people still feel lonely and depression rates have largely increased. Inspired by this circumstance, this project is to design a system that would enable the Baxter Robot to detect the negative emotion of its master and play songs on the piano using both hands to help him/her get rid of the bad feelings.
+
+This project aims to use deep learning and manipulation platform to train a two-armed robot to play the piano based on the human emotion.
+
+This repository provides Tenserflow code for traning and testing the emotion detection policies with deep learning in real time, as well as the ROS python code for manipulate the robot to play the piano.
+
+<img src="images/emotion_detection.gif" height=250px align="left"/>
+<img src="images/piano_play.gif" height=250px align="left"/>
+
+## Requirements:
+* Linux 18.04
+* ROS melodic
+* 
+
 
 ## Technical Goals: 
 + Fallback goal:

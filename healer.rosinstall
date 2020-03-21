@@ -1,0 +1,18 @@
+- git:
+    local-name: healer
+    uri: git@github.com:mushenghe/HealerBaxter.git
+- git:
+    local-name: moveit_robots
+    uri: git@github.com:ros-planning/moveit_robots.git
+- git:
+    local-name: apriltag_ros
+    uri: https://github.com/ME495-EmbeddedSystems/apriltag_ros.git
+- git:
+    local-name: baxter_interface
+    uri: https://github.com/RethinkRobotics/baxter_interface.git
+    version: release-1.2.0
+- git:
+    local-name: baxter_tools
+    uri: https://github.com/RethinkRobotics/baxter_tools.git
+    version: release-1.2.0
+
