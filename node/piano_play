@@ -59,7 +59,7 @@ class PianoPlay(object):
 		rospy.sleep(0.25)
 
 		self.move_group = moveit_commander.MoveGroupCommander('both_arms')
-		print "============ Reference frame: %s" % self.move_group.get_planning_frame()
+		
 
 		# init parameters that would be used later
 		self.leftcount = 0

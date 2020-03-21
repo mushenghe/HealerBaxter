@@ -2,14 +2,14 @@
 
 This project aims to use deep learning and manipulation platform to train a two-armed robot to play the piano based on the human emotion.
 
+<img src="images/emotion_detection.gif" height=300px width="435" align="left"/>
+<img src="images/piano_play.gif" height=300px  width="435" align="left"/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+
 This repository provides Tenserflow code for traning and testing the emotion detection policies with deep learning in real time, as well as the ROS python code for manipulate the robot to play the piano.
 
-<img src="images/emotion_detection.gif" height=300px width="400" align="left"/>
-<img src="images/piano_play.gif" height=300px  width="400" align="left"/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
-
-## Requirements:
-* Linux 18.04
+## Requirements
+* Ubuntu 18.04
 * ROS melodic
 * [Kaggle Dataset](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data)
 ## Hardware:
@@ -18,92 +18,100 @@ This repository provides Tenserflow code for traning and testing the emotion det
 * [AprilTags](http://wiki.ros.org/apriltag_ros)
 * [AA Batteries](https://www.amazon.com/AmazonBasics-Performance-Alkaline-Batteries-Count/dp/B00MNV8E0C?ref_=s9_apbd_orecs_hd_bw_bQMcmB&pf_rd_r=5RQFAAJHZ8EJ758E09VB&pf_rd_p=a50b8358-02f3-5eb1-a8ca-3ec2c519285c&pf_rd_s=merchandised-search-10&pf_rd_t=BROWSE&pf_rd_i=389577011)
 
+## Getting Started
+### Installation
+This implementation requires the following dependencies:
+* install moveit
+```
+sudo apt install ros-melodic-moveit
+```
+* install apriltag_ros package
+```
+sudo apt install ros-melodic-apriltag-ros
+```
+* install viewer package for ROS image topics
+```
+sudo apt install ros-melodic-image-view
+```
+* install image rectification and color processing package for ROS
+```
+sudo apt install ros-melodic-image-proc
+```
+* install tensorflow and keras
+    + Check if your Python environment is already configured: 
+    ```
+        sudo apt update
+        sudo apt install python3-dev python3-pip
+        sudo pip3 install -U virtualenv  # system-wide install
+    ```
 
-## Technical Goals: 
-+ Fallback goal:
-    - Assume the person is sad, execute piano playing process
-    - Hardcode melody
-+ Core goal:
-    -Correctly detect person’s facial expression
-    -Play great sounds
-    -Play chords simultaneously with the melody and play continuously
-+ Reach goal:
-    -Recognize and distinguish people
-    -Baxter have flexibility to play any series of notes
+    + Create a new virtual environment by choosing a Python interpreter and making a ./venv directory to hold it: 
+    ```
+        virtualenv --system-site-packages -p python3 ./venv
+    ```
+    
+    +  Activate the virtual environment using a shell-specific command:
+    ```
+        source ./venv/bin/activate  # sh, bash, ksh, or zsh
+    ```
+    
+    + Install packages within a virtual environment without affecting the host system setup. Start by upgrading pip: 
+    ```
+        pip install --upgrade pip
+        pip list  # show packages installed within the virtual environment
+    ```
+    
+    + Install the TensorFlow pip package:
+    ```
+        pip install --upgrade tensorflow
+    ```
+    
+    + Verify the install:
+    ```
+        python -c "import tensorflow as tf;print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
+    ```
+    
+    + install Keras
+    ```
+        pip install keras
+    ```
 
-## Learning Objectives:
-+ Computer vision
-+ Machine learning
-+ Deep Learning 
-+ Neural networks
-+ Face recognition
-+ Explore motion planning with modern robotics library
+### Quickstart
++ Create a new workspace, download healer.rosinstall file and use this to download the code
+    - Some code comes from forked repositories, with fixes to make it compile on Ubuntu 18.04 with melodic
++ Builld the workspace
+    - Use catkin_make -DCMAKE_BUILD_TYPE = Release to enable optimizations and improve the resulting performance
++ Connect and enable the robot, open the left camera
++ Launch the piano playing launch file, manipulate the robot to the initial configuration, ready for emotion detection and piano playing
++ Use pre-trained model webcam to detect the emotion, when sad face is detected, baxter start play the piano
 
-## Tasks:
-+ Correctly detect person’s facial expression
-    - Choose one of the APIs listed in the Hardware section
-    - Use facial expression database and use Opencv and Machine Learning to train the data.
-+ Locate the piano and locate  the keys
-    - Use AR tag and explore ar_track_alvar
-    - Convert the poses in the AR frame to the poses in the world frame.
-+ Play great sounds
-    - Create a gripper extension that can hit the key without bending or sliding.
-    - Set waypoints to ensure the keys are struck directly from above.
-+ Play chords simultaneously with the melody and play continuously
-    - Use moveit, control both arms
-    - Compute all poses by calibrating with the AR tags. As long as the piano is not moved, these will remain constant throughout a series of notes.
-
-## Uncertainties:
-+ If the motion planning of Moveit can plan the path and choose the “safe” path
-+ If the facial expression detection algorithm works good
-
-## Hardware:
-+ Baxter Robot
-    - Gripper ( may be customized)
-    - Cameras on both arms
-+ Roll-up Piano
-+ Open source AR Tag/April Tag
-+ Facial emotion detection APIs: (or use machine learning algorithms to train / deep learning neural networks)
-https://core.ac.uk/download/pdf/160107352.pdf
-    - Affectiva
-    - Keras
-https://github.com/neha01/Realtime-Emotion-Detection
-    - Project Oxford by Microsoft https://docs.microsoft.com/en-us/samples/browse/?products=azure
-    - Face++
-https://www.faceplusplus.com.cn/emotion-recognition/
-    - ParallelDocs
-https://www.paralleldots.com/facial-emotion
-    - NVISO
-    https://www.nviso.ai/en
-    - Cohn-Kanade AU-Coded Expression Database
-http://www.pitt.edu/~emotion/ck-spread.htm
-
-Use tensorflow on my computer:
-``` source ./deep_learning/bin/activate 
-to deactivate :
-deactivate 
-
-Use on gpu:  ssh -p 922 129.105.69.167
-exit: exit
-
-want to copy files from my computer to GPU:
-scp -P 922 test mushenghe@129.105.69.167:~/ 
-
-
-ctrl-v   go to what ever you want  x
-ctrl-v shift i
+Instructions:
++ Create and build workspace
+```
+mkdir -p HealerBaxter/src
+cd HealerBaxter/src
+// download healer.rosinstall
+wstool init
+wstool merge healer.rosinstall
+wstool update
+cd ..
+catkin_make 
+source devel/setup.bash
 ```
 
-running in gazebo simulation environment:
-
-run ```roslaunch baxter_gazebo baxter_world.launch``` to start the simulator
-
-run ```roslaunch baxter_moveit_config baxter_grippers.launch``` to bringup robot
-
-run ```rosrun baxter_tools enable_robot.py -e``` to enable the robot:
-
-run ```rosrun baxter_interface joint_trajectory_action_server.py``` to start the joint trajectory controller
-
-run ```rosrun healer initial_pose ``` to launch the initial_pose code
-
-run ```rosrun healer piano_play``` to run the playing piano node
++ Connect Robot and manipulate it to the initial configuration
+```
+source src/healer/config/connect.sh
+roslaunch healer piano_playing.launch
+```
++ Start detecting emotion, use python I/O file to send the detected emotion to baxter and start playing the piano
+```
+source ~/venv/bin/activate
+cd src/healer/emotion_detection/
+python test_model.py 
+rosrun healer piano_play 
+```
+## Future work
++ Train model to recognize and distinguish people, make the system only work for one master
++ Make baxter to have flexibility to play any series of notes based on the user input
++ Make docker container to bring up all the dependencies
