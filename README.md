@@ -2,11 +2,13 @@
 
 This project aims to use deep learning and manipulation platform to train a two-armed robot to play the piano based on the human emotion.
 
-<img src="images/emotion_detection.gif" height=300px width="435" align="left"/>
-<img src="images/piano_play.gif" height=300px  width="435" align="left"/>
+<img src="images/emotion_detection.gif" height=300px width="430" align="left"/>
+<img src="images/piano_play.gif" height=300px  width="430" align="left"/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
 
 This repository provides Tenserflow code for traning and testing the emotion detection policies with deep learning in real time, as well as the ROS python code for manipulate the robot to play the piano.
+
+For an explanation of the neural network model structure please see my [portfolio post](https://mushenghe.github.io/)
 
 ## Requirements
 * Ubuntu 18.04
