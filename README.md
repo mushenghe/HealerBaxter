@@ -2,8 +2,8 @@
 
 This project aims to use deep learning and manipulation platform to train a two-armed robot to play the piano based on the human emotion.
 
-<img src="images/emotion_detection.gif" height=300px width="430" align="left"/>
-<img src="images/piano_play.gif" height=300px  width="430" align="left"/>
+<img src="images/emotion_detection.gif" height=300px width="420" align="left"/>
+<img src="images/piano_play.gif" height=300px  width="420" align="left"/>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
 
