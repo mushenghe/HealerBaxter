@@ -4,14 +4,19 @@ This project aims to use deep learning and manipulation platform to train a two-
 
 This repository provides Tenserflow code for traning and testing the emotion detection policies with deep learning in real time, as well as the ROS python code for manipulate the robot to play the piano.
 
-<img src="images/emotion_detection.gif" height=250px width="380" align="left"/>
-<img src="images/piano_play.gif" height=250px  width="380" align="left"/>
+<img src="images/emotion_detection.gif" height=300px width="400" align="left"/>
+<img src="images/piano_play.gif" height=300px  width="400" align="left"/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
 
 ## Requirements:
 * Linux 18.04
 * ROS melodic
-* 
+* [Kaggle Dataset](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data)
+## Hardware:
+* [Baxter Robot](https://robots.ieee.org/robots/baxter/)
+* [Soft roll-up piano](https://www.amazon.com/iMeshbean-Portable-Flexible-Electronic-Keyboard/dp/B07W929C1Y/ref=sr_1_14?keywords=roll+up+piano+61+keys&qid=1577941987&s=toys-and-games&sr=1-14)
+* [AprilTags](http://wiki.ros.org/apriltag_ros)
+* [AA Batteries](https://www.amazon.com/AmazonBasics-Performance-Alkaline-Batteries-Count/dp/B00MNV8E0C?ref_=s9_apbd_orecs_hd_bw_bQMcmB&pf_rd_r=5RQFAAJHZ8EJ758E09VB&pf_rd_p=a50b8358-02f3-5eb1-a8ca-3ec2c519285c&pf_rd_s=merchandised-search-10&pf_rd_t=BROWSE&pf_rd_i=389577011)
 
 
 ## Technical Goals: 
