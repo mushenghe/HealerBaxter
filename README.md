@@ -4,8 +4,9 @@ This project aims to use deep learning and manipulation platform to train a two-
 
 This repository provides Tenserflow code for traning and testing the emotion detection policies with deep learning in real time, as well as the ROS python code for manipulate the robot to play the piano.
 
-<img src="images/emotion_detection.gif" height=250px align="left"/>
-<img src="images/piano_play.gif" height=250px align="left"/>
+<img src="images/emotion_detection.gif" height=250px width="350"align="left"/>
+&nbsp;&nbsp;&nbsp;<img src="images/piano_play.gif" height=250px  width="350" align="left"/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
 
 ## Requirements:
 * Linux 18.04
