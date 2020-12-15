@@ -58,8 +58,7 @@ from apriltag_ros.msg import AprilTagDetectionArray
 from geometry_msgs.msg import Pose, Point
 
 
-# This class implements the image processing pipeline
-# for our given task
+# This class implements the image processing pipeline for our given task
 class imageProcessor:
 
 
@@ -74,16 +73,9 @@ class imageProcessor:
     def apriltag_callback(self, data):
 
         myPose = Pose()
-
-        # print( data.detections[0].pose.pose.pose )
         
         if ( len(data.detections) > 1):
-            # rospy.loginfo("Start publishing, pose 1 is %lf,%lf,%lf",data.detections[0].pose.pose.pose.position.x,data.detections[0].pose.pose.pose.position.y,data.detections[0].pose.pose.pose.position.z)            
-            # rospy.loginfo("Start publishing, pose 2 is %lf,%lf,%lf",data.detections[1].pose.pose.pose.position.x,data.detections[1].pose.pose.pose.position.y,data.detections[1].pose.pose.pose.position.z)
-            # '''change here'''
-            # self.desiredTagPose.publish(data.detections[0].pose.pose.pose )
-            # print("data.detections[0].id")
-            # print(int(data.detections[0].id[0]))
+           
             if(data.detections[0].id[0] == 1):
                 self.desired_leftTagPose.publish(data.detections[0].pose.pose.pose )
                 self.desired_rightTagPose.publish(data.detections[1].pose.pose.pose )
@@ -125,15 +117,13 @@ class imageProcessor:
 
         # Redistributes the rectified image to the april tags detector
         self.rectifiedDistributor = rospy.Subscriber( "/image_rect", Image, self.distributeRectified )
-        self.publishRectified = rospy.Publisher( "/camera_rect/image_rect", Image, queue_size = 1   )
+        self.publishRectified = rospy.Publisher( "/camera_rect/image_rect", Image, queue_size = 1  )
 
-        # /camera_rect/image_rect
 
         # Subscribe to the april tag classification data stream
         self.apriltags = rospy.Subscriber("/tag_detections", AprilTagDetectionArray, self.apriltag_callback)
         
-        '''change here'''
-        # self.desiredTagPose = rospy.Publisher("/tag_pose", Pose, queue_size = 1 )
+
         self.desired_leftTagPose = rospy.Publisher("/left_tag_pose", Pose, queue_size = 1 )
         self.desired_rightTagPose = rospy.Publisher("/right_tag_pose", Pose, queue_size = 1 )
         

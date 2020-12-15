@@ -69,7 +69,7 @@ class PianoPlay(object):
 		self.quat_left={} 
 		self.trans_left={}
 
-		# setting parameters for left arm group
+		# setting parameters for move group
 		self.position_tolerance = 0.02
 		self.orientation_tolerance = 0.02
 		self.move_group.set_goal_position_tolerance(self.position_tolerance)
@@ -103,17 +103,6 @@ class PianoPlay(object):
 		self.right_orientation_z = -0.013948
 		self.right_orientation_w = -0.0251204
 
-		# self.left_orientation_x = 0.000000
-		# self.left_orientation_y = 0.100000
-		# self.left_orientation_z = 0.000000
-		# self.left_orientation_w = 0.000000
-
-
-		# self.right_orientation_x = 0.000000
-		# self.right_orientation_y = 0.100000
-		# self.right_orientation_z = 0.000000
-		# self.right_orientation_w = 0.000000
-
 
 
 
@@ -121,21 +110,12 @@ class PianoPlay(object):
 		self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path'
 				,moveit_msgs.msg.DisplayTrajectory,queue_size=20)
 		self.left_tag_pose = rospy.wait_for_message('/left_tag_pose' ,Pose)  
+        # convert pose in camera frame to tbase frame
 		self.quat_left, self.trans_left = extract_pose(self.tag_in_base(self.left_tag_pose))
-		# print("pose of left tag in base frame: \n")
-		# print("trans of left tag in base frame: \n")
-		# print(self.trans_left)
-		# print("orientation of left tag in base frame: \n")
-		# print(self.quat_left)
 		rospy.sleep(1)
 
 		self.right_tag_position = rospy.wait_for_message('right_tag_pose',Pose)  
 		self.quat_right, self.trans_right = extract_pose(self.tag_in_base(self.right_tag_position))
-		# print("pose of right tag")
-		# print("trans of right tag in base frame: \n")
-		# print(self.trans_right)
-		# print("orientation of right tag in base frame: \n")
-		# print(self.quat_right)
 		rospy.sleep(0.5)
 
 		print("Finish node initialization")
@@ -144,9 +124,6 @@ class PianoPlay(object):
 	def tag_in_base(self,pose_tag):
 		""" return transformation of tag relative to baxter """
 
-		# print("pose tag recieved: \n")
-		# print(pose_tag)
-		# since we get the pose through left camera, the end effector is left gripper
 		left_EE_pose = geometry_msgs.msg.Pose()
 
 		left_EE_pose.position.x = 0.754
@@ -158,15 +135,6 @@ class PianoPlay(object):
 		left_EE_pose.orientation.z = 0.001
 		left_EE_pose.orientation.w = -0.023
 
-		# right_EE_pose.position.x = 0.727
-		# right_EE_pose.position.y = -0.203
-		# right_EE_pose.position.z = 0.118	
-		# right_EE_pose.orientation.x = -0.670
-		# right_EE_pose.orientation.y = 0.742
-		# right_EE_pose.orientation.z = 0.011
-		# right_EE_pose.orientation.w = -0.025
-
-		#compute transformation of tag relative to EE
 		Tet = get_transform(pose_tag)
 		# compute transformation of EE relative to baxter
 		Tbe = get_transform(left_EE_pose)
@@ -246,12 +214,7 @@ class PianoPlay(object):
 
 	def move_to_keys(self,left_offset,right_offset,x_left,y_left,x_right,y_right,pre_standoff = False,poke = False):
 		"""move both arm to a goal pose"""
-		# left_pose_goal.position.x = 0.78373497
-		# left_pose_goal.position.y =  0.34865032
-		# left_pose_goal.position.z =  -0.16783931
-		# right_pose_goal.position.x = 0.78288658
-		# right_pose_goal.position.y = -0.11776263
-		# right_pose_goal.position.z = -0.18157599
+
 		left_pose_goal = geometry_msgs.msg.Pose()
 		right_pose_goal = geometry_msgs.msg.Pose()
 		left_force = self.left_limb.endpoint_effort()['force']
@@ -289,12 +252,12 @@ class PianoPlay(object):
 			rospy.sleep(0.5)
 			# display_trajectory(plan, self.robot, self.display_trajectory_publisher)
 
-			#Execute the plan
-			# confirmed = raw_input('Execute? y/n')
-			# if confirmed == "y":
-			self.move_group.execute(plan)
-			self.move_group.stop()
-			self.move_group.clear_pose_targets()
+			Execute the plan
+			confirmed = raw_input('Execute? y/n')
+			if confirmed == "y":
+                self.move_group.execute(plan)
+                self.move_group.stop()
+                self.move_group.clear_pose_targets()
 
 		elif poke:
 			print("play")
@@ -319,33 +282,6 @@ class PianoPlay(object):
 			print("right pose is")
 			print(right_pose_goal)
 
-			# left_pose_goal.position.x = 0.78373497
-			# left_pose_goal.position.y = 0.34865032 + left_offset
-			# left_pose_goal.position.z = -0.16783931
-
-
-			# right_pose_goal.position.x =0.78288658 
-			# right_pose_goal.position.y =-0.11776263 + right_offset
-			# right_pose_goal.position.z =-0.18157599 
-
-
-
-		# try:
-		# 	self.move_group.set_pose_target(left_pose_goal,"left_gripper")
-		# 	self.move_group.set_pose_target(right_pose_goal,"right_gripper")
-
-		# 	plan = self.move_group.plan()
-		# 	print "============ Waiting while RVIZ displays plan..."
-		# 	rospy.sleep(0.5)
-		# 	# display_trajectory(plan, self.robot, self.display_trajectory_publisher)
-
-		# 	#Execute the plan
-		# 	# confirmed = raw_input('Execute? y/n')
-		# 	# if confirmed == "y":
-		# 	self.move_group.execute(plan)
-		# 	self.move_group.stop()
-		# 	self.move_group.clear_pose_targets()
-
 			while(left_force.x **2 +left_force.y **2 + left_force.z **2 < force_thresh**2 or right_force.x **2 +right_force.y **2 + right_force.z **2 < force_thresh**2):
 				rospy.sleep(0.5)
 				left_force = self.left_limb.endpoint_effort()['force']
@@ -364,114 +300,18 @@ class PianoPlay(object):
 				rospy.sleep(0.5)
 
 				#Execute the plan
-				# confirmed = raw_input('Execute? y/n')
-				# if confirmed == "y":
-				self.move_group.execute(plan)
-				self.move_group.stop()
-				self.move_group.clear_pose_targets()
-					# else:
-					# 	break
+				confirmed = raw_input('Execute? y/n')
+				if confirmed == "y":
+                    self.move_group.execute(plan)
+                    self.move_group.stop()
+                    self.move_group.clear_pose_targets()
+                else:
+                    break
 				rospy.logdebug("Starting to probe in a new position") 
 
 		# except (rospy.ServiceException, rospy.ROSException), e:
 		# 	rospy.loginfo("Service call failed: %s" % (e,))
 
-	def go_right_tag(self):
-		"""move the right arm to 0.1m above the right tag"""
-		right_group = moveit_commander.MoveGroupCommander("right_arm")
-		tolerance = 0.01
-		right_group.set_goal_position_tolerance(tolerance)
-		right_group.set_goal_orientation_tolerance(tolerance)
-		right_group.set_planning_time(5.0)
-		right_group.allow_replanning(True)
-		right_group.set_max_velocity_scaling_factor(0.6)
-		right_group.set_max_acceleration_scaling_factor(0.6)
-
-		right_pose_goal = geometry_msgs.msg.Pose()
-		
-		right_pose_goal.position.x = self.trans_right[0] 
-		right_pose_goal.position.y = self.trans_right[1] 
-		right_pose_goal.position.z = self.trans_right[2] + self.prestand_z 
-		# right_pose_goal.position.x = 0.78288658
-		# right_pose_goal.position.y = -0.11776263
-		# right_pose_goal.position.z = -0.18157599
-
-
-		# right_pose_goal.orientation.x = 0.0573664
-		# right_pose_goal.orientation.y = 0.99794
-		# right_pose_goal.orientation.z = -0.013948
-		# right_pose_goal.orientation.w = -0.0251204
-		right_pose_goal.orientation.x = self.right_orientation_x
-		right_pose_goal.orientation.y = self.right_orientation_y
-		right_pose_goal.orientation.z = self.right_orientation_z
-		right_pose_goal.orientation.w = self.right_orientation_w
-
-		print("right pose goal is")
-		print(right_pose_goal)
-
-		right_group.set_pose_target(right_pose_goal)
-		plan = right_group.plan()
-		display_trajectory(plan, self.robot, self.display_trajectory_publisher)
-
-		raw_input("Press <Enter> to move the right arm to tag position: ")
-		confirmed = raw_input('Keep probing downwards? y/n')
-		if confirmed == "y":
-			right_group.execute(plan)
-			right_group.stop()
-			right_group.clear_pose_targets()
-
-
-	def go_left_tag(self):
-		"""move the left arm to 0.1m above the left tag"""
-		left_group = moveit_commander.MoveGroupCommander("left_arm")
-		tolerance = 0.01
-		left_group.set_goal_position_tolerance(tolerance)
-		left_group.set_goal_orientation_tolerance(tolerance)
-		left_group.set_planning_time(5.0)
-		left_group.allow_replanning(True)
-		left_group.set_max_velocity_scaling_factor(0.6)
-		left_group.set_max_acceleration_scaling_factor(0.6)
-
-		left_pose_goal = geometry_msgs.msg.Pose()
-		
-			
-		left_pose_goal.position.x = self.trans_left[0]  
-		left_pose_goal.position.y = self.trans_left[1] 
-		left_pose_goal.position.z = self.trans_left[2] + self.prestand_z 
-		
-		# left_pose_goal.position.x = 0.78373497
-		# left_pose_goal.position.y =  0.34865032
-		# left_pose_goal.position.z =  -0.16783931
-
-		# left_pose_goal.orientation.x  = -0.0075195
-		# left_pose_goal.orientation.y = 0.999649
-		# left_pose_goal.orientation.z = 0.0156364
-		# left_pose_goal.orientation.w = 0.0200044
-		left_pose_goal.orientation.x = self.left_orientation_x
-		left_pose_goal.orientation.y = self.left_orientation_y
-		left_pose_goal.orientation.z = self.left_orientation_z
-		left_pose_goal.orientation.w = self.left_orientation_w
-
-
-		# left_pose_goal.orientation.x = self.left_orientation_x
-		# left_pose_goal.orientation.y = self.left_orientation_y
-		# left_pose_goal.orientation.z = self.left_orientation_z
-		# left_pose_goal.orientation.w = self.left_orientation_w
-
-		print("left pose goal is")
-		print(left_pose_goal)
-
-
-		left_group.set_pose_target(left_pose_goal)
-		plan = left_group.plan()
-		display_trajectory(plan, self.robot, self.display_trajectory_publisher)
-
-		raw_input("Press <Enter> to move the left arm to tag position: ")
-		confirmed = raw_input('Keep probing downwards? y/n')
-		if confirmed == "y":
-			left_group.execute(plan)
-			left_group.stop()
-			left_group.clear_pose_targets()
 
 	def play_both_arm(self):
 		""" start playing the piano, move both arm together
@@ -524,15 +364,12 @@ def main():
 		rospy.sleep(2)
 		print("start playing")
 		play_piano.play_both_arm()	
-		# play_piano.test_simulation()
+
 	except rospy.ROSInterruptException:
 		return
 	except KeyboardInterrupt:
 		return
 
-	# play_piano.go_left_tag()
-	# rospy.sleep(2)
-	# play_piano.go_right_tag()
 	
 	
 

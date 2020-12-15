@@ -11,10 +11,6 @@
   <!-- Go to the initial position -->
 
     <node name="initial_pose" pkg="healer" type="initial_pose" output="screen"/> 
-    
-  <!-- Start playing the piano -->
-
-    <!-- <node name="piano_play" pkg="healer" type="piano_play" output="screen"/>  -->
 
   <!--Start the baxter interface package--> 
     <node name="joint_trajectory_action_server" pkg="baxter_interface" type="joint_trajectory_action_server.py" />

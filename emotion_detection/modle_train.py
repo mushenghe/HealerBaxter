@@ -23,7 +23,7 @@ train_datagen = ImageDataGenerator(
 					horizontal_flip=True, #flip
 					fill_mode='nearest')
 
-validation_datagen = ImageDataGenerator(rescale=1./255) #normalize
+validation_datagen = ImageDataGenerator(rescale=1./255) #convert to grayscale
 
 train_generator = train_datagen.flow_from_directory(
 					train_data_dir,
@@ -49,9 +49,6 @@ model = Sequential()
 model.add(Conv2D(64,(3,3),padding='same',kernel_initializer='he_normal',input_shape=(img_rows,img_cols,1))) #48*48 grayscale image
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-# model.add(Conv2D(64,(3,3),padding='same',kernel_initializer='he_normal',input_shape=(img_rows,img_cols,1)))
-# model.add(Activation('relu'))
-# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25)) # at a time only 75% neurons will activated, prevent the model from overfitting
 
@@ -60,9 +57,6 @@ model.add(Dropout(0.25)) # at a time only 75% neurons will activated, prevent th
 model.add(Conv2D(128,(5,5),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-# model.add(Conv2D(128,(5,5),padding='same',kernel_initializer='he_normal'))
-# model.add(Activation('relu'))
-# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -71,9 +65,6 @@ model.add(Dropout(0.25))
 model.add(Conv2D(128,(3,3),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-# model.add(Conv2D(128,(3,3),padding='same',kernel_initializer='he_normal'))
-# model.add(Activation('relu'))
-# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -82,9 +73,6 @@ model.add(Dropout(0.25))
 model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('elu'))
 model.add(BatchNormalization())
-# model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
-# model.add(Activation('elu'))
-# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -93,24 +81,19 @@ model.add(Dropout(0.25))
 model.add(Conv2D(512,(3,3),padding='same',kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
-# model.add(Conv2D(512,(3,3),padding='same',kernel_initializer='he_normal'))
-# model.add(Activation('relu'))
-# model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
 
 # start flatten process
-# use flatten layer
-# Block-5
-
 model.add(Flatten())
+# Block-6
 model.add(Dense(512,kernel_initializer='he_normal'))
 model.add(Activation('relu'))
 model.add(BatchNormalization())
 model.add(Dropout(0.25))
 
-# Block-6
+# Block-7
 
 model.add(Dense(1024,kernel_initializer='he_normal'))
 model.add(Activation('relu'))
@@ -127,19 +110,22 @@ print(model.summary())
 from keras.optimizers import RMSprop,SGD,Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
+# Save the best model observed during training for later use
 checkpoint = ModelCheckpoint('new_model.h5',
-                              monitor='val_loss', #monitor the validation lost
+                              monitor='val_loss', # monitor the validation lost
                               mode='min',
                               save_best_only=True, # only save the best result
-                             verbose=1)
+                              verbose=1)
 
+# Stop training once triggered
 earlystop = EarlyStopping(monitor='val_loss',
-                           min_delta=0,
+                           min_delta=1,
                            patience=20,
                            verbose=1,
                            restore_best_weights=True
                            )
 
+# Reduce learning rate when a metric has stopped improving.
 reduce_lr = ReduceLROnPlateau(monitor='val_loss',
                                factor=0.2,
                                patience=3,
@@ -154,7 +140,7 @@ model.compile(loss='categorical_crossentropy',
 
 nb_train_samples = 3156357
 nb_validation_samples = 5248
-epochs=4
+epochs=10
 
 history=model.fit_generator(
                 train_generator,
