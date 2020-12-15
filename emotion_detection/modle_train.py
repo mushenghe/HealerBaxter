@@ -71,7 +71,7 @@ model.add(Dropout(0.25))
 # Block-4 
 
 model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
-model.add(Activation('elu'))
+model.add(Activation('relu'))
 model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
